@@ -39,7 +39,7 @@ class UserLoginAPIView(APIView):
             if user.is_active:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
-                return Response({'message': 'Inicio de sesión exitoso', 'token': token.key}, status=status.HTTP_200_OK)
+                return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -84,7 +84,7 @@ class UserRegisterAPIView(APIView):
             # Enviar el correo electrónico de verificación
             send_verification_email(user.email, user.username, full_verification_url)
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({'message': 'Usuario registrado exitosamente'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def send_verification_email(user_email, username, verification_link):
