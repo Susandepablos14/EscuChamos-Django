@@ -107,3 +107,53 @@ class UserVerifyAPIView(APIView):
             return Response({'message': 'Tu correo electrónico ha sido verificado exitosamente.'}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'message': 'El token de verificación no es válido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+class UserIndexAPIView(APIView):
+    def get(self, request):
+        try:
+            users = User.objects.all()
+
+            # user_filter = UserFilter(request.query_params, queryset=users)
+            # filtered_users = user_filter.qs
+
+            # if 'pag' in request.query_params:
+            #     pagination = CustomPagination()
+            #     paginated_users = pagination.paginate_queryset(filtered_users, request)
+            #     serializer = UserSerializer(paginated_users, many=True)
+            #     return pagination.get_paginated_response({"users": serializer.data})
+            
+            serializer = UserSerializer(users, many=True)
+            return Response({"users": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+           
+           
+class UserShowAPIView(APIView):
+
+    def get(self, request, pk):
+        try:
+
+            user = User.objects.filter(pk=pk).first()
+            if not user:
+                return Response({
+                    "mensaje": "El ID de usuario no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
