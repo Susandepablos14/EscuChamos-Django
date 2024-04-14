@@ -7,6 +7,9 @@ urlpatterns = [
     path('register/', UserRegisterAPIView.as_view(), name='register'),
     path('verify-email/<str:token>/', UserVerifyAPIView.as_view(), name='verify_email'),
     
-    path('users', UserIndexAPIView.as_view(), name='user-list'),
+    path('users', UserIndexAPIView.as_view(), name='user-index'),
     path('user/<int:pk>', UserShowAPIView.as_view(), name='user-show'),
+
+    path('countries', CountryIndexAPIView.as_view(), name='country-index'),
+    path('country/<int:pk>', CountryShowAPIView.as_view(), name='country-show'),
 ]

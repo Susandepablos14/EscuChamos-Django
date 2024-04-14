@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import User, Role
+from .models import User, Role, Country  
 from .serializer import *
 from django.shortcuts import get_object_or_404
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
@@ -157,3 +157,38 @@ class UserShowAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CountryIndexAPIView(APIView):
+    def get(self, request):
+        try:
+            countries = Country.objects.all()
+            serializer = CountrySerializer(countries, many=True)
+            return Response({"countries": serializer.data})
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CountryShowAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            country = Country.objects.filter(pk=pk).first()
+            if not country:
+                return Response({
+                    "mensaje": "El ID del país no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+            serializer = CountrySerializer(country)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
