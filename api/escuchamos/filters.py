@@ -11,8 +11,6 @@ class UserFilter(django_filters.FilterSet):
     address = django_filters.CharFilter(lookup_expr='icontains')
     phone_number = django_filters.CharFilter(lookup_expr='icontains')
 
-
- 
     class Meta:
             model = User
             fields = [
@@ -49,4 +47,25 @@ class RoleFilter(django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains' 
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'        
+        
+
+class CountryFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
+    dialing_code = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+            model = User
+            fields = [
+                    'name', 
+                    'abbreviation', 
+                    'dialing_code', 
+                     ]
+            
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains' 
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
         

@@ -64,7 +64,7 @@ class UserLogoutAPIView(APIView):
   
 class UserRegisterAPIView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
 
