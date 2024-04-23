@@ -211,14 +211,18 @@ class UserUpdateAPIView(APIView):
             
             data = request.data
             
-            for field, value in data.items():
-                if value != 'null' and hasattr(user, field):
-                    setattr(user, field, value)
+            # Verificar si hay una nueva contraseña en los datos de la solicitud
+            new_password = data.get('password', None)
+            if new_password:
+                # Encriptar la nueva contraseña
+                data['password'] = make_password(new_password)
             
-            user.save()
-            
-            serializer = UserSerializer(user)
-            return Response(serializer.data)
+            serializer = UserSerializer(user, data=data, partial=True)  # Permitir actualizaciones parciales
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 "data": {
