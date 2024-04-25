@@ -78,12 +78,12 @@ WSGI_APPLICATION = 'api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.pgsql',
         'NAME': 'escuchamos',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',  
-        'PORT': '3306',  
+        'USER': 'admin',
+        'PASSWORD': 'DmYB2QIgE53zeeBn1VC4OHeQG17zmeRL',
+        'HOST': 'dpg-colc3amd3nmc73cd3jc0-a.ohio-postgres.render.com',  
+        'PORT': '5432',  
     }
 }
 
