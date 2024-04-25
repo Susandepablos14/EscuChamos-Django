@@ -16,8 +16,7 @@ SECRET_KEY = 'django-insecure-btlia-0@g(@qze6tnav=axz6jsi3n&-df$1=(ef$(_s*8*o1#+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['escuchamos.onrender.com', '0.0.0.0', 'localhost', '127.0.0.1']
-
+ALLOWED_HOSTS = ['escuchamos.onrender.com', 'localhost', '127.0.0.1']
 
 # Application definition
 
