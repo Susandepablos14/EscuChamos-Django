@@ -28,6 +28,12 @@ from django.urls import reverse
 # Inicio de Sesión
 #-----------------------------------------------------------------------------------------------------
 
+class WelcomeAPIView(APIView):
+    def get(self, request):
+        welcome_message = "¡Bienvenido! Por favor, disfruta de nuestra aplicación."
+
+        return Response(welcome_message)
+
 class UserLoginAPIView(APIView):
     authentication_classes = []
 
