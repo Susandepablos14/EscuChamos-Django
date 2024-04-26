@@ -1,5 +1,6 @@
 from django.urls import path
 from escuchamos.api import *
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('', WelcomeAPIView.as_view(), name=''),
@@ -18,3 +19,4 @@ urlpatterns = [
     path('countries', CountryIndexAPIView.as_view(), name='country-index'),
     path('country/<int:pk>', CountryShowAPIView.as_view(), name='country-show'),
 ]
+urlpatterns += staticfiles_urlpatterns()

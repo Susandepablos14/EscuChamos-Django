@@ -1,5 +1,7 @@
 
 from pathlib import Path
+import dj_database_url
+
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,7 +18,7 @@ SECRET_KEY = 'django-insecure-btlia-0@g(@qze6tnav=axz6jsi3n&-df$1=(ef$(_s*8*o1#+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['escuchamos.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -72,21 +74,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'api.wsgi.application'
+WSGI_APPLICATION = 'renderdeployyuy.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'escuchamos',
-        'USER': 'admin',
-        'PASSWORD': 'DmYB2QIgE53zeeBn1VC4OHeQG17zmeRL',
-        'HOST': 'dpg-colc3amd3nmc73cd3jc0-a.ohio-postgres.render.com',  
-        'PORT': '5432',  
-    }
+    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
 }
 
 
