@@ -75,20 +75,14 @@ class UserRegisterAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
 
-            # Generar el token de verificación
             verification_token = default_token_generator.make_token(user)
 
-            # Establecer el estado de verificación de correo electrónico como False y guardar el token
-            user.is_email_verified = False 
             user.email_verification_token = verification_token
             user.save()
-
-            # Construir el enlace de verificación de correo electrónico
             current_site = get_current_site(request)
             verification_url = reverse('verify_email', kwargs={'token': verification_token})
             full_verification_url = 'http://' + current_site.domain + verification_url
 
-            # Enviar el correo electrónico de verificación
             send_verification_email(user.email, user.username, full_verification_url)
 
             return Response({'message': 'Usuario registrado exitosamente'}, status=status.HTTP_201_CREATED)

@@ -78,7 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
-    country_id = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True)
+    country_id = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True, source='country')
 
     def validate_password(self, value):
         if len(value) < 8:
