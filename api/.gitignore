@@ -1,0 +1,11 @@
+# Archivos de caché de Python
+__pycache__/
+
+# Carpetas de caché de Python
+*.pyc
+
+# Archivos de caché de Django
+*.sqlite3
+
+# Otros archivos generados automáticamente
+.env
