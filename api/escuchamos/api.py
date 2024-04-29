@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import User, Role, Country  
 from .serializer import *
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.pagination import PageNumberPagination
 from .filters import UserFilter, RoleFilter
@@ -19,10 +19,10 @@ from django.utils.crypto import get_random_string
 from django.urls import reverse_lazy
 from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+import random
 
 #-----------------------------------------------------------------------------------------------------
 # Inicio de Sesión
@@ -73,24 +73,22 @@ class UserRegisterAPIView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            user = serializer.save(commit=False) 
 
-            verification_token = default_token_generator.make_token(user)
+            verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
-            user.email_verification_token = verification_token
+            user.verification_code = verification_code
+            user.is_active = False
             user.save()
-            current_site = get_current_site(request)
-            verification_url = reverse('verify_email', kwargs={'token': verification_token})
-            full_verification_url = 'http://' + current_site.domain + verification_url
+            send_verification_email(user.email, user.username, verification_code)
 
-            send_verification_email(user.email, user.username, full_verification_url)
-
-            return Response({'message': 'Usuario registrado exitosamente'}, status=status.HTTP_201_CREATED)
+            verification_url = reverse('verification')
+            return Response({'message': 'Se ha enviado un correo electrónico de verificación', 'verification_url': verification_url}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def send_verification_email(user_email, username, verification_link):
+def send_verification_email(user_email, username, verification_code):
     subject = 'Verifica tu dirección de correo electrónico'
-    html_content = render_to_string('verify_email.html', {'username': username, 'verification_link': verification_link, 'user_email' : user_email})
+    html_content = render_to_string('verify_email.html', {'username': username, 'verification_code': verification_code, 'user_email': user_email})
     send_mail(
         subject,
         '',
@@ -99,15 +97,22 @@ def send_verification_email(user_email, username, verification_link):
         html_message=html_content,
     )
     
-class UserVerifyAPIView(APIView):
-    def get(self, request, token):
+class EmailVerificationAPIView(APIView):
+    def post(self, request):
+        verification_code = request.data.get('verification_code')
+        user_email = request.data.get('user_email')
+
         try:
-            user = User.objects.get(email_verification_token=token)
-            user.is_email_verified = True
-            user.save()
-            return Response({'message': 'Tu correo electrónico ha sido verificado exitosamente.'}, status=status.HTTP_200_OK)
+            user = User.objects.get(email=user_email)
         except User.DoesNotExist:
-            return Response({'message': 'El token de verificación no es válido.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.verification_code == verification_code:
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Tu dirección de correo electrónico ha sido verificada correctamente'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'El código de verificación es incorrecto'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 #-----------------------------------------------------------------------------------------------------

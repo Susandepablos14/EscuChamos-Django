@@ -8,7 +8,6 @@ class UserFilter(django_filters.FilterSet):
     last_name = django_filters.CharFilter(lookup_expr='icontains')
     role_id = django_filters.NumberFilter(field_name='role__id') 
     document = django_filters.CharFilter(lookup_expr='icontains')
-    address = django_filters.CharFilter(lookup_expr='icontains')
     phone_number = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
@@ -19,7 +18,6 @@ class UserFilter(django_filters.FilterSet):
                     'name', 
                     'last_name', 
                     'role_id',
-                    'address',
                     'phone_number', ]
             
     def __init__(self, *args, **kwargs):
