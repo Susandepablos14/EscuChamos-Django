@@ -38,20 +38,22 @@ class UserLoginAPIView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        User = get_user_model()
-        user = User.objects.filter(username=username).first()
-        if user is not None and user.check_password(password):
-            if user.is_active:
-                login(request, user)
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
+        try:
+            username = request.data.get('username')
+            password = request.data.get('password')
+            User = get_user_model()
+            user = User.objects.filter(username=username).first()
+            if user is not None and user.check_password(password):
+                if user.is_active:
+                    login(request, user)
+                    token, created = Token.objects.get_or_create(user=user)
+                    return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
-
+                return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"detail": "Se produjo un error al procesar la solicitud: {}".format(str(e))}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 #-----------------------------------------------------------------------------------------------------
 # Cerrar Sesión
 #-----------------------------------------------------------------------------------------------------
