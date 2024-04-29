@@ -7,7 +7,7 @@ urlpatterns = [
     path('login/', UserLoginAPIView.as_view(), name='login'),
     path('logout/', UserLogoutAPIView.as_view(), name='logout'),
     path('register/', UserRegisterAPIView.as_view(), name='register'),
-    path('verification', EmailVerificationAPIView.as_view(), name='verification'),
+    path('verify-email/<str:token>/', UserVerifyAPIView.as_view(), name='verify_email'),
     
     path('users', UserIndexAPIView.as_view(), name='user-list'),
     path('user/create', UserStoreAPIView.as_view(), name='user-create'),
