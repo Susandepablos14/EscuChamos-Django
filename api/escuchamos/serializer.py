@@ -48,6 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         role_id = validated_data.pop('role_id')
         validated_data['password'] = make_password(validated_data['password']) 
+        validated_data['username'] = validated_data['username'].lower()
         user = super().create(validated_data)
         role = Role.objects.get(pk=role_id)
         user.role = role
@@ -91,6 +92,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         default_role = Role.objects.get(id=3)
         validated_data['role'] = default_role
         validated_data['password'] = make_password(validated_data['password']) 
+        validated_data['username'] = validated_data['username'].lower()
         return super().create(validated_data)
     class Meta:
         model = User
