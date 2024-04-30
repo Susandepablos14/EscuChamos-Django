@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from escuchamos.models import Role, Country
+from escuchamos.models import Role, Country, Status
 
 class Command(BaseCommand):
     help = 'Sembrar datos en modelos de la aplicación'
@@ -7,6 +7,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.seed_countries()
         self.seed_roles()
+        self.seed_statuses()
 
     def seed_countries(self):
         countries = [
@@ -57,3 +58,17 @@ class Command(BaseCommand):
         ]
         for name, description in roles:
             Role.objects.get_or_create(name=name, description=description)
+
+    def seed_statuses(self):
+        statuses = [
+            ('Activo', 'Estado normal sin infracciones'),
+            ('Infracción', 'Estado de infracción por violación de reglas'),
+            ('En revisión', 'Estado de revisión pendiente'),
+            ('Resuelto', 'Estado de infracción resuelto'),
+            ('Bloqueado', 'Estado de contenido bloqueado'),
+            ('Reportado', 'Estado de contenido reportado'),
+        ]
+        for name, description in statuses:
+            Status.objects.get_or_create(name=name, description=description)
+    
+    

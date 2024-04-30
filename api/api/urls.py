@@ -18,5 +18,8 @@ urlpatterns = [
 
     path('countries', CountryIndexAPIView.as_view(), name='country-index'),
     path('country/<int:pk>', CountryShowAPIView.as_view(), name='country-show'),
+
+    path('statuses', StatusIndexAPIView.as_view(), name='status-index'),
+    path('status/<int:pk>', StatusShowAPIView.as_view(), name='status-show'),
 ]
 urlpatterns += staticfiles_urlpatterns()

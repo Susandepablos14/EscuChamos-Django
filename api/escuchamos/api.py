@@ -6,7 +6,7 @@ from .serializer import *
 from django.shortcuts import get_object_or_404
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.pagination import PageNumberPagination
-from .filters import UserFilter, RoleFilter
+from .filters import UserFilter, RoleFilter, StatusFilter
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authentication import SessionAuthentication
@@ -38,22 +38,20 @@ class UserLoginAPIView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        try:
-            username = request.data.get('username')
-            password = request.data.get('password')
-            User = get_user_model()
-            user = User.objects.filter(username=username).first()
-            if user is not None and user.check_password(password):
-                if user.is_active:
-                    login(request, user)
-                    token, created = Token.objects.get_or_create(user=user)
-                    return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        username = username.lower()
+        User = get_user_model()
+        user = User.objects.filter(username=username).first()
+        if user is not None and user.check_password(password):
+            if user.is_active:
+                login(request, user)
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
             else:
-                return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"detail": "Se produjo un error al procesar la solicitud: {}".format(str(e))}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
 #-----------------------------------------------------------------------------------------------------
 # Cerrar Sesión
 #-----------------------------------------------------------------------------------------------------
@@ -162,6 +160,8 @@ class UserStoreAPIView(APIView):
                     if not Role.objects.filter(pk=role_id).exists():
                         return Response({"error": "El role_id proporcionado no existe"}, status=status.HTTP_400_BAD_REQUEST)
                 serializer.save()
+                username = serializer.validated_data.get('username')
+                username = username.lower()  # Agregar esta línea para convertir el nombre de usuario a minúsculas
                 return Response({"message": "¡Has sido registrado exitosamente!"}, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -218,6 +218,10 @@ class UserUpdateAPIView(APIView):
             if new_password:
                 # Encriptar la nueva contraseña
                 data['password'] = make_password(new_password)
+
+            username = data.get('username', None)
+            if username:
+                data['username'] = username.lower()
             
             serializer = UserSerializer(user, data=data, partial=True)  # Permitir actualizaciones parciales
             if serializer.is_valid():
@@ -272,6 +276,8 @@ class UserRestoreAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class CountryIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             countries = Country.objects.all()
@@ -287,6 +293,8 @@ class CountryIndexAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CountryShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, pk):
         try:
             country = Country.objects.filter(pk=pk).first()
@@ -304,4 +312,58 @@ class CountryShowAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class StatusIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            statuses = Status.objects.all()
+
+            if 'pag' in request.query_params:
+                status_filter = StatusFilter(request.query_params, queryset=statuses)
+                filtered_statuses = status_filter.qs
+
+                pagination = CustomPagination()
+                paginated_statuses = pagination.paginate_queryset(filtered_statuses, request)
+                serializer = StatusSerializer(paginated_statuses, many=True)
+                return pagination.get_paginated_response({"statuses": serializer.data})
+
+            serializer = StatusSerializer(statuses, many=True)
+            return Response({"statuses": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class StatusShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            status_obj = Status.objects.filter(pk=pk).first()
+            if not status_obj:
+                return Response({
+                    "mensaje": "El ID de estado no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = StatusSerializer(status_obj)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 

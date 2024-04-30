@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password 
-from .models import User, Role, Country
+from .models import *
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -19,6 +19,16 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at',  ]
+
+class StatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id',
                   'name', 
                   'description', 
                   'created_at',
@@ -112,5 +122,7 @@ class RegisterSerializer(serializers.ModelSerializer):
                   'updated_at',
                   'deleted_at',  
                   'role', ]
+        
+    
 
 
