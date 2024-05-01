@@ -22,8 +22,6 @@ from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 import random
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 #-----------------------------------------------------------------------------------------------------
 # Inicio de Sesión
@@ -116,7 +114,6 @@ def send_verification_email(user_email, username, verification_code):
 #             return Response({'message': 'El token de verificación no es válido.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class EmailVerificationAPIView(APIView):
     def post(self, request):
         verification_code = request.data.get('verification_code')
