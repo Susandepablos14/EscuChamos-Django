@@ -240,11 +240,16 @@ class UserUpdateAPIView(APIView):
             
             data = request.data
             
-            # Verificar si hay una nueva contraseña en los datos de la solicitud
-            new_password = data.get('password', None)
-            if new_password:
-                # Encriptar la nueva contraseña
-                data['password'] = make_password(new_password)
+            for field, value in data.items():
+                if field == 'password':
+                    if len(value) < 8:
+                        raise serializers.ValidationError("La contraseña debe tener al menos 8 caracteres.")
+                    if not any(char.isdigit() for char in value) or not any(char.isalpha() for char in value):
+                        raise serializers.ValidationError("La contraseña debe ser alfanumérica.")
+                    value = make_password(value)
+                if (value not in ('', 'null') and value is not None) and hasattr(user, field):
+                     setattr(user, field, value)
+            user.save()
 
             username = data.get('username', None)
             if username:
@@ -391,4 +396,6 @@ class StatusShowAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+# for field, value in data.items():
+#                 if (value not in ('', 'null') and value is not None) and hasattr(category, field):
+#                      setattr(category, field, value)
