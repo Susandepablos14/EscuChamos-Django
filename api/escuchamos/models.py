@@ -130,8 +130,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 #-----------------------------------------------------------------------------------------------------
 # Status
 #-----------------------------------------------------------------------------------------------------
-from django.db import models
-from django.utils import timezone
 
 class Status(models.Model):
     name = models.CharField(max_length=255)
