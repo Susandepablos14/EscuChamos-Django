@@ -300,8 +300,6 @@ class UserRestoreAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class CountryIndexAPIView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
             countries = Country.objects.all()
