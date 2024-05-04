@@ -68,7 +68,6 @@ class UserLogoutAPIView(APIView):
 # Registrarse
 #-----------------------------------------------------------------------------------------------------
 
-
 class UserRegisterAPIView(APIView):
     def post(self, request):
         try:
@@ -133,14 +132,13 @@ class EmailVerificationAPIView(APIView):
             return Response({'message': 'El código de verificación es incorrecto'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'pag'
 
 #-----------------------------------------------------------------------------------------------------
 # CRUD USUARIOS
 #-----------------------------------------------------------------------------------------------------
   
-
-class CustomPagination(PageNumberPagination):
-    page_size_query_param = 'pag'
 
 class UserIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]

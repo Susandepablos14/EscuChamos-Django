@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
@@ -32,12 +32,13 @@ class Country(models.Model):
         self.save()
         
 #-----------------------------------------------------------------------------------------------------
-# Rol 
+# Rol
 #-----------------------------------------------------------------------------------------------------
 
 class Role(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    permissions = models.ManyToManyField(Permission, through='RolePermission')
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
@@ -236,32 +237,13 @@ class TypePost(models.Model):
         self.save()
 
 #-----------------------------------------------------------------------------------------------------
-# Tipo de publicacion
+# Roles y Permisos
 #-----------------------------------------------------------------------------------------------------
-
-class TypePost(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
-    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
-    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+       
+class RolePermission(models.Model):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = 'type_posts'
-        verbose_name = 'Tipo de publicacion'
-        verbose_name_plural = 'Tipo de publicaciones'
-
-    def __str__(self):
-        return self.name
-
-    def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
-        self.save()
-
-    def restore(self, *args, **kwargs):
-        self.deleted_at = None
-        self.save()
-
-
-
-        
+        db_table = 'role_has_permissions' 
+        unique_together = ('role', 'permission')
