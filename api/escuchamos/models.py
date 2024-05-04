@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 
 #-----------------------------------------------------------------------------------------------------
 # País 
@@ -108,6 +110,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
     objects = UserManager()
+    
+    files = GenericRelation('File', related_query_name='user')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'name', 'last_name']
@@ -247,3 +251,35 @@ class RolePermission(models.Model):
     class Meta:
         db_table = 'role_has_permissions' 
         unique_together = ('role', 'permission')
+        
+#-----------------------------------------------------------------------------------------------------
+# Archivos
+#-----------------------------------------------------------------------------------------------------
+
+class File(models.Model):
+    fileable_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    fileable_id = models.PositiveIntegerField()
+    fileable = GenericForeignKey('fileable_type', 'fileable_id')
+    path = models.CharField(max_length=255)
+    extension = models.CharField(max_length=10)
+    size = models.CharField(max_length=20)
+    type = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+    
+    class Meta:
+        db_table = 'files'
+        verbose_name = 'Archivo'
+        verbose_name_plural = 'Archivos'
+        
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
