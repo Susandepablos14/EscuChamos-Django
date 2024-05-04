@@ -1,12 +1,12 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .models import User, Role, Country  
+from .models import *
 from .serializer import *
 from django.shortcuts import get_object_or_404
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.pagination import PageNumberPagination
-from .filters import UserFilter, RoleFilter, StatusFilter
+from .filters import *
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authentication import SessionAuthentication
@@ -135,7 +135,7 @@ class EmailVerificationAPIView(APIView):
 
 
 #-----------------------------------------------------------------------------------------------------
-# CRUD USERS
+# CRUD USUARIOS
 #-----------------------------------------------------------------------------------------------------
   
 
@@ -145,6 +145,7 @@ class CustomPagination(PageNumberPagination):
 class UserIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_user'
 
     def get(self, request):
         try:
@@ -174,6 +175,7 @@ class UserIndexAPIView(APIView):
 class UserStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_user'
 
     def post(self, request):
         try:
@@ -200,6 +202,7 @@ class UserStoreAPIView(APIView):
 class UserShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_user'
 
     def get(self, request, pk):
         try:
@@ -226,6 +229,7 @@ class UserShowAPIView(APIView):
 class UserUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_user'
 
     def put(self, request, pk):
         try:
@@ -270,6 +274,7 @@ class UserUpdateAPIView(APIView):
 class UserDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_user'
 
     def delete(self, request, pk):
         try:
@@ -288,6 +293,7 @@ class UserDeleteAPIView(APIView):
 class UserRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_user'
 
     def get(self, request, pk):
         try:
@@ -304,7 +310,16 @@ class UserRestoreAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+    
+#-----------------------------------------------------------------------------------------------------
+# CRUD PAISES
+#-----------------------------------------------------------------------------------------------------
+  
+
 class CountryIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_country'
     def get(self, request):
         try:
             countries = Country.objects.all()
@@ -322,6 +337,7 @@ class CountryIndexAPIView(APIView):
 class CountryShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_country'
     def get(self, request, pk):
         try:
             country = Country.objects.filter(pk=pk).first()
@@ -340,9 +356,15 @@ class CountryShowAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
+#-----------------------------------------------------------------------------------------------------
+# CRUD ESTADOS
+#-----------------------------------------------------------------------------------------------------
+  
 class StatusIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_status'
 
     def get(self, request):
         try:
@@ -372,6 +394,7 @@ class StatusIndexAPIView(APIView):
 class StatusShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_status'
 
     def get(self, request, pk):
         try:
@@ -392,7 +415,468 @@ class StatusShowAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
-# for field, value in data.items():
-#                 if (value not in ('', 'null') and value is not None) and hasattr(category, field):
-#                      setattr(category, field, value)
+#-----------------------------------------------------------------------------------------------------
+# CRUD CATEGORIAS
+#-----------------------------------------------------------------------------------------------------
+  
+
+class CategoryIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_category'
+
+    def get(self, request):
+        try:
+            categories = Category.objects.all()
+
+            if request.query_params:
+                category_filter = CategoryFilter(request.query_params, queryset=categories)
+                categories = category_filter.qs
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_categories = pagination.paginate_queryset(categories, request)
+                serializer = CategorySerializer(paginated_categories, many=True)
+                return pagination.get_paginated_response({"categories": serializer.data})
+            
+            serializer = CategorySerializer(categories, many=True)
+            return Response({"categories": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+          
+class CategoryStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_category'
+
+    def post(self, request):
+        try:
+            serializer = CategorySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Categoría registrada exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CategoryShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_category'
+
+    def get(self, request, pk):
+        try:
+
+            category = Category.objects.filter(pk=pk).first()
+            if not category:
+                return Response({
+                    "mensaje": "El ID de la categoría no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+            serializer = CategorySerializer(category)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CategoryUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_category'
+
+    def put(self, request, pk):
+        try:
+
+            try:
+                category = Category.objects.get(pk=pk)
+            except Category.DoesNotExist:
+                return Response({"message": "El ID de categoría no está registrado"}, status=status.HTTP_404_NOT_FOUND)
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(category, field):
+                     setattr(category, field, value)
+
+            category.save()
+
+            serializer = CategorySerializer(category)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CategoryDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_category'
+
+    def delete(self, request, pk):
+        try:
+            category = get_object_or_404(Category, pk=pk)
+            category.delete()
+            return Response({"message": "¡Categoría eliminada exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CategoryRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_category'
+
+    def get(self, request, pk):
+        try:
+            category = get_object_or_404(Category, pk=pk, deleted_at__isnull=False)
+            category.deleted_at = None
+            category.save()
+            return Response({"message": "¡Categoría restaurada exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+#-----------------------------------------------------------------------------------------------------
+# CRUD UNIDADES DE MEDIDA
+#-----------------------------------------------------------------------------------------------------
+  
+    
+class UnitIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_unit'
+
+    def get(self, request):
+        try:
+            units = Unit.objects.all()
+
+            if request.query_params:
+                unit_filter = UnitFilter(request.query_params, queryset=units)
+                units = unit_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination() 
+                paginated_units = pagination.paginate_queryset(units, request)
+                serializer = UnitSerializer(paginated_units, many=True)
+                return pagination.get_paginated_response({"units": serializer.data})
+            
+            serializer = UnitSerializer(units, many=True)
+            return Response({"units": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UnitStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_unit'
+
+    def post(self, request):
+        try:
+            serializer = UnitSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Unidad de medida registrada exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UnitShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_unit'
+
+    def get(self, request, pk):
+        try:
+            unit = Unit.objects.filter(pk=pk).first()
+            if not unit:
+                return Response({
+                    "mensaje": "El ID de la unidad no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = UnitSerializer(unit)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UnitUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_unit'
+
+
+    def put(self, request, pk):
+        try:
+
+            if not Unit.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            unit = get_object_or_404(Unit, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(unit, field):
+                     setattr(unit, field, value)
+            
+            unit.save()
+            
+            serializer = UnitSerializer(unit)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UnitDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_units']
+
+    def delete(self, request, pk):
+        try:
+            unit = get_object_or_404(Unit, pk=pk)
+            unit.delete()
+            return Response({"message": "¡Unidad de medida eliminada exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class UnitRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_units']
+
+    def get(self, request, pk):
+        try:
+            unit = get_object_or_404(Unit, pk=pk, deleted_at__isnull=False)
+            unit.deleted_at = None
+            unit.save()
+            return Response({"message": "¡Unidad de medida restaurada exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#-----------------------------------------------------------------------------------------------------
+# CRUD TIPO DE PUBLICACION
+#-----------------------------------------------------------------------------------------------------
+          
+class TypePostIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request):
+        try:
+            type_posts = TypePost.objects.all()
+
+            if request.query_params:
+                type_post_filter = TypePostFilter(request.query_params, queryset=type_posts)
+                type_posts = type_post_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination() 
+                paginated_type_posts = pagination.paginate_queryset(type_posts, request)
+                serializer = TypePostSerializer(paginated_type_posts, many=True)
+                return pagination.get_paginated_response({"type_posts": serializer.data})
+            
+            serializer = TypePostSerializer(type_posts, many=True)
+            return Response({"type_posts": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePostStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_type_post'
+
+    def post(self, request):
+        try:
+            serializer = TypePostSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Tipo de publicación registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TypePostShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request, pk):
+        try:
+            type_post = TypePost.objects.filter(pk=pk).first()
+            if not type_post:
+                return Response({
+                    "mensaje": "El ID del tipo de publicación no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = TypePostSerializer(type_post)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePostUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_type_post'
+
+
+    def put(self, request, pk):
+        try:
+
+            if not TypePost.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            type_post = get_object_or_404(TypePost, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(type_post, field):
+                     setattr(type_post, field, value)
+            
+            type_post.save()
+            
+            serializer = TypePostSerializer(type_post)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePostDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def delete(self, request, pk):
+        try:
+            type_post = get_object_or_404(TypePost, pk=pk)
+            type_post.delete()
+            return Response({"message": "¡Tipo de publicación eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePostRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def get(self, request, pk):
+        try:
+            type_post = get_object_or_404(TypePost, pk=pk, deleted_at__isnull=False)
+            type_post.deleted_at = None
+            type_post.save()
+            return Response({"message": "¡Tipo de publicación restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+

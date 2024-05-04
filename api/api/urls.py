@@ -21,5 +21,26 @@ urlpatterns = [
 
     path('statuses', StatusIndexAPIView.as_view(), name='status-index'),
     path('status/<int:pk>', StatusShowAPIView.as_view(), name='status-show'),
+
+    path('category', CategoryIndexAPIView.as_view(), name='category-index'),
+    path('category/create', CategoryStoreAPIView.as_view(), name='category-store'),
+    path('category/<int:pk>', CategoryShowAPIView.as_view(), name='category-show'),
+    path('category/update/<int:pk>', CategoryUpdateAPIView.as_view(), name='category-update'),
+    path('category/delete/<int:pk>', CategoryDeleteAPIView.as_view(), name='category-delete'),
+    path('category/restore/<int:pk>', CategoryRestoreAPIView.as_view(), name='category-restore'),
+
+    path('units', UnitIndexAPIView.as_view(), name='unit-index'),
+    path('unit/create', UnitStoreAPIView.as_view(), name='unit-store'),
+    path('unit/<int:pk>', UnitShowAPIView.as_view(), name='unit-show'),
+    path('unit/update/<int:pk>', UnitUpdateAPIView.as_view(), name='unit-update'),
+    path('unit/delete/<int:pk>', UnitDeleteAPIView.as_view(), name='unit-delete'),
+    path('unit/restore/<int:pk>', UnitRestoreAPIView.as_view(), name='unit-restore'),
+
+    path('type-posts', TypePostIndexAPIView.as_view(), name='type-post-index'),
+    path('type-post/create', TypePostStoreAPIView.as_view(), name='type-post-store'),
+    path('type-post/<int:pk>', TypePostShowAPIView.as_view(), name='type-post-show'),
+    path('type-post/update/<int:pk>', TypePostUpdateAPIView.as_view(), name='type-post-update'),
+    path('type-post/delete/<int:pk>', TypePostDeleteAPIView.as_view(), name='type-post-delete'),
+    path('type-post/restore/<int:pk>', TypePostRestoreAPIView.as_view(), name='type-post-restore'),
 ]
 urlpatterns += staticfiles_urlpatterns()

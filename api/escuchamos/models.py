@@ -128,7 +128,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.save()
 
 #-----------------------------------------------------------------------------------------------------
-# Status
+# Estado
 #-----------------------------------------------------------------------------------------------------
 
 class Status(models.Model):
@@ -153,3 +153,115 @@ class Status(models.Model):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Categoria
+#-----------------------------------------------------------------------------------------------------
+
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'categories'
+        verbose_name = 'Categoria'
+        verbose_name_plural = 'Categorias'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Unidades de medida
+#-----------------------------------------------------------------------------------------------------
+
+class Unit(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'units'
+        verbose_name = 'Unidad'
+        verbose_name_plural = 'Unidades'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Tipo de publicacion
+#-----------------------------------------------------------------------------------------------------
+
+class TypePost(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'type_posts'
+        verbose_name = 'Tipo de publicacion'
+        verbose_name_plural = 'Tipo de publicaciones'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Tipo de publicacion
+#-----------------------------------------------------------------------------------------------------
+
+class TypePost(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'type_posts'
+        verbose_name = 'Tipo de publicacion'
+        verbose_name_plural = 'Tipo de publicaciones'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+
+
+        

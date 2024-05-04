@@ -1,5 +1,8 @@
 import django_filters
-from .models import User, Role, Status
+from .models import *
+#-----------------------------------------------------------------------------------------------------
+# Filtro usuarios
+#-----------------------------------------------------------------------------------------------------
 
 class UserFilter(django_filters.FilterSet):
     username = django_filters.CharFilter(lookup_expr='icontains')
@@ -29,6 +32,9 @@ class UserFilter(django_filters.FilterSet):
                 self.filters[field_name].lookup_expr = 'icontains' 
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
         
+#-----------------------------------------------------------------------------------------------------
+# Filtro roles
+#-----------------------------------------------------------------------------------------------------
 
 class RoleFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -47,7 +53,10 @@ class RoleFilter(django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains' 
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'        
-        
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro paises
+#----------------------------------------------------------------------------------------------------- 
 
 class CountryFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -69,6 +78,9 @@ class CountryFilter(django_filters.FilterSet):
                 self.filters[field_name].lookup_expr = 'icontains' 
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
 
+#-----------------------------------------------------------------------------------------------------
+# Filtro estados
+#-----------------------------------------------------------------------------------------------------
 
 class StatusFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
@@ -85,4 +97,70 @@ class StatusFilter(django_filters.FilterSet):
                 self.filters[field_name].lookup_expr = 'icontains'
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
 
-        
+#-----------------------------------------------------------------------------------------------------
+# Filtro categoria
+#-----------------------------------------------------------------------------------------------------
+
+class CategoryFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Category
+        fields = [
+            'name',
+            'description',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+            
+#-----------------------------------------------------------------------------------------------------
+# Filtro unidades de medida
+#-----------------------------------------------------------------------------------------------------
+
+class UnitFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
+    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Unit
+        fields = [
+            'name',
+            'description',
+            'abbreviation',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+#-----------------------------------------------------------------------------------------------------
+# Filtro tipo de publicacion
+#-----------------------------------------------------------------------------------------------------
+
+class TypePostFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
+    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Unit
+        fields = [
+            'name',
+            'description',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'

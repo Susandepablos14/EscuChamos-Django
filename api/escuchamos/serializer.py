@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password 
 from .models import *
 
+#-----------------------------------------------------------------------------------------------------
+# Paises
+#-----------------------------------------------------------------------------------------------------
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,6 +18,10 @@ class CountrySerializer(serializers.ModelSerializer):
                   'deleted_at')
         read_only_fields = ('created_at', 'updated_at', 'deleted_at')
 
+#-----------------------------------------------------------------------------------------------------
+# Roles
+#-----------------------------------------------------------------------------------------------------
+
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
@@ -25,6 +32,10 @@ class RoleSerializer(serializers.ModelSerializer):
                   'updated_at',
                   'deleted_at',  ]
 
+#-----------------------------------------------------------------------------------------------------
+# Estados
+#-----------------------------------------------------------------------------------------------------
+
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
@@ -34,6 +45,10 @@ class StatusSerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'deleted_at',  ]
+        
+#-----------------------------------------------------------------------------------------------------
+# Usuario
+#-----------------------------------------------------------------------------------------------------
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
@@ -86,6 +101,9 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},  
         }
+#-----------------------------------------------------------------------------------------------------
+# Registro
+#-----------------------------------------------------------------------------------------------------
 
 class RegisterSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
@@ -123,6 +141,71 @@ class RegisterSerializer(serializers.ModelSerializer):
                   'deleted_at',  
                   'role', ]
         
+#-----------------------------------------------------------------------------------------------------
+# Categoria
+#-----------------------------------------------------------------------------------------------------
+        
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at',  ]
+
+    def validate_name(self, value):
+        if Category.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe una categoría con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Category.objects.create(**validated_data)
+
+#-----------------------------------------------------------------------------------------------------
+# Unidades de medida
+#-----------------------------------------------------------------------------------------------------
+
+class UnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Unit
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'abbreviation', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at']
+
+    def validate_name(self, value):
+        if Unit.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe una unidad con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Unit.objects.create(**validated_data)
     
+#-----------------------------------------------------------------------------------------------------
+# Tipo de publicacion
+#-----------------------------------------------------------------------------------------------------
+    
+class TypePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TypePost 
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at']
+
+    def validate_name(self, value):
+        if Unit.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un tipo de post con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Unit.objects.create(**validated_data)
 
 
