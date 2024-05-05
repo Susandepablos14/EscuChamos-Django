@@ -49,5 +49,12 @@ urlpatterns = [
     path('order-status/update/<int:pk>/', OrderStatusesUpdateAPIView.as_view(), name='order-status-update'),
     path('order-status/delete/<int:pk>/', OrderStatusesDeleteAPIView.as_view(), name='order-status-delete'),
     path('order-status/restore/<int:pk>/', OrderStatusesRestoreAPIView.as_view(), name='order-status-restore'),
+
+    path('gender/', GenderIndexAPIView.as_view(), name='gender-index'),
+    path('gender/create/', GenderStoreAPIView.as_view(), name='gender-create'),
+    path('gender/<int:pk>/', GenderShowAPIView.as_view(), name='gender-show'),
+    path('gender/update/<int:pk>/', GenderUpdateAPIView.as_view(), name='gender-update'),
+    path('gender/delete/<int:pk>/', GenderDeleteAPIView.as_view(), name='gender-delete'),
+    path('gender/restore/<int:pk>/', GenderRestoreAPIView.as_view(), name='gender-restore'),
 ]
 urlpatterns += staticfiles_urlpatterns()

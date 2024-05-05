@@ -9,6 +9,7 @@ class Command(BaseCommand):
         self.seed_roles()
         self.seed_statuses()
         self.seed_units()
+        self.seed_genders()
 
     def seed_countries(self):
         countries = [
@@ -85,4 +86,13 @@ class Command(BaseCommand):
             for unit_data in units:
                 Unit.objects.get_or_create(**unit_data)
     
+    def seed_genders(self):
+        genders = [
+            {'name': 'Masculino', 'description': 'Género masculino.'},
+            {'name': 'Femenino', 'description': 'Género femenino.'},
+            {'name': 'Otro', 'description': 'Otros géneros.'},
+        ]
+        for gender_data in genders:
+            Gender.objects.get_or_create(**gender_data)
+
     
