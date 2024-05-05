@@ -311,3 +311,30 @@ class   OrderStatuses(models.Model):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Genero
+#-----------------------------------------------------------------------------------------------------
+
+class   Gender(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'genders'
+        verbose_name = 'Genero'
+        verbose_name_plural = 'Generos'
+
+    def _str_(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()

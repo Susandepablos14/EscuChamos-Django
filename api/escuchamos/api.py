@@ -1033,3 +1033,159 @@ class OrderStatusesRestoreAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+#-----------------------------------------------------------------------------------------------------
+# CRUD GENERO
+#-----------------------------------------------------------------------------------------------------
+
+class GenderIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request):
+        try:
+            genders = Gender.objects.all()
+
+            if request.query_params:
+                gender_filter = GenderFilter(request.query_params, queryset=genders)
+                genders = gender_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination() 
+                paginated_genders = pagination.paginate_queryset(genders, request)
+                serializer = GenderSerializer(paginated_genders, many=True)
+                return pagination.get_paginated_response({"genders": serializer.data})
+            
+            serializer = GenderSerializer(genders, many=True)
+            return Response({"genders": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class GenderStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_type_post'
+
+    def post(self, request):
+        try:
+            serializer = GenderSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Género registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GenderShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request, pk):
+        try:
+            gender = Gender.objects.filter(pk=pk).first()
+            if not gender:
+                return Response({
+                    "mensaje": "El ID del género no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = GenderSerializer(gender)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class GenderUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_type-post'
+           
+    def put(self, request, pk):
+        try:
+
+            if not Gender.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            gender = get_object_or_404(Gender, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(gender, field):
+                     setattr(gender, field, value)
+            
+            gender.save()
+            
+            serializer = GenderSerializer(gender)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+class GenderDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def delete(self, request, pk):
+        try:
+            gender = get_object_or_404(Gender, pk=pk)
+            gender.delete()
+            return Response({"message": "¡Género eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class GenderRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def get(self, request, pk):
+        try:
+            gender = get_object_or_404(Gender, pk=pk, deleted_at__isnull=False)
+            gender.deleted_at = None
+            gender.save()
+            return Response({"message": "¡Género restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

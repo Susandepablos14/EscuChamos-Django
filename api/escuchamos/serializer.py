@@ -228,3 +228,25 @@ class OrderStatusesSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return OrderStatuses.objects.create(**validated_data)
+    
+#-----------------------------------------------------------------------------------------------------
+# Generos
+#-----------------------------------------------------------------------------------------------------
+    
+class GenderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gender 
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at']
+
+    def validate_name(self, value):
+        if Gender.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un estado de pedido con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Gender.objects.create(**validated_data)
