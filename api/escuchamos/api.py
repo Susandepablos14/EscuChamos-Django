@@ -729,7 +729,7 @@ class UnitRestoreAPIView(APIView):
 class TypePostIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_type_posts'
 
     def get(self, request):
         try:
@@ -876,5 +876,156 @@ class TypePostRestoreAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#-----------------------------------------------------------------------------------------------------
+# CRUD TIPO DE PERSONA
+#-----------------------------------------------------------------------------------------------------
+class TypePersonIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_persons'
+
+    def get(self, request):
+        try:
+            type_persons = TypePerson.objects.all()
+
+            if request.query_params:
+                type_persons_filter = TypePersonFilter(request.query_params, queryset=type_persons)
+                type_persons = type_persons_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination() 
+                paginated_type_persons = pagination.paginate_queryset(type_persons, request)
+                serializer = TypePersonSerializer(paginated_type_persons, many=True)
+                return pagination.get_paginated_response({"type_persons": serializer.data})
+            
+            serializer = TypePersonSerializer(type_persons, many=True)
+            return Response({"type_persons": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class TypePersonStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_type_persons'
+
+    def post(self, request):
+        try:
+            serializer = TypePersonSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Tipo de persona registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePersonShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_person'
+
+    def get(self, request, pk):
+        try:
+            type_person = TypePerson.objects.filter(pk=pk).first()
+            if not type_person:
+                return Response({
+                    "mensaje": "El ID del tipo de persona no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = TypePersonSerializer(type_person)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePersonUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_type_person'
 
 
+    def put(self, request, pk):
+        try:
+
+            if not TypePerson.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            type_person = get_object_or_404(TypePerson, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(type_person, field):
+                     setattr(type_person, field, value)
+            
+            type_person.save()
+            
+            serializer = TypePostSerializer(type_person)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePersonDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_person']
+
+    def delete(self, request, pk):
+        try:
+            type_person = get_object_or_404(TypePerson, pk=pk)
+            type_person.delete()
+            return Response({"message": "¡Tipo de persona eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TypePersonRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_person']
+
+    def get(self, request, pk):
+        try:
+            type_person = get_object_or_404(TypePerson, pk=pk, deleted_at__isnull=False)
+            type_person.deleted_at = None
+            type_person.save()
+            return Response({"message": "¡Tipo de persona restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
