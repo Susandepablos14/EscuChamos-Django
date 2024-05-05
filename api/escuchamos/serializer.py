@@ -173,7 +173,6 @@ class UnitSerializer(serializers.ModelSerializer):
         fields = ['id', 
                   'name', 
                   'description', 
-                  'abbreviation', 
                   'created_at',
                   'updated_at',
                   'deleted_at']
@@ -201,11 +200,9 @@ class TypePostSerializer(serializers.ModelSerializer):
                   'deleted_at']
 
     def validate_name(self, value):
-        if Unit.objects.filter(name=value).exists():
+        if TypePost.objects.filter(name=value).exists():
             raise serializers.ValidationError("Ya existe un tipo de post con este nombre.")
         return value
 
     def create(self, validated_data):
-        return Unit.objects.create(**validated_data)
-
-
+        return TypePost.objects.create(**validated_data)
