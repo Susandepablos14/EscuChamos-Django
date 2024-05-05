@@ -82,6 +82,7 @@ class UserManager(BaseUserManager):
         return self._create_user(username, email, name, last_name, password, False, False, **extra_fields)
 
     def create_superuser(self, username, email, name, last_name, password=None, **extra_fields):
+        extra_fields.setdefault('role_id', 1)
         return self._create_user(username, email, name, last_name, password, True, True, **extra_fields)
 
 #-----------------------------------------------------------------------------------------------------

@@ -126,14 +126,12 @@ class CategoryFilter(django_filters.FilterSet):
 class UnitFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     description = django_filters.CharFilter(lookup_expr='icontains')
-    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = Unit
         fields = [
             'name',
             'description',
-            'abbreviation',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -149,7 +147,6 @@ class UnitFilter(django_filters.FilterSet):
 class TypePostFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     description = django_filters.CharFilter(lookup_expr='icontains')
-    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = Unit

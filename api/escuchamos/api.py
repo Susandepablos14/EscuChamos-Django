@@ -806,9 +806,8 @@ class TypePostShowAPIView(APIView):
 class TypePostUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_type_post'
-
-
+    # required_permissions = 'change_type-post'
+           
     def put(self, request, pk):
         try:
 
@@ -817,17 +816,17 @@ class TypePostUpdateAPIView(APIView):
                     "message": "El ID no está registrado"
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            type_post = get_object_or_404(TypePost, pk=pk)
+            typepost = get_object_or_404(TypePost, pk=pk)
             
             data = request.data
             
             for field, value in data.items():
-                if (value not in ('', 'null') and value is not None) and hasattr(type_post, field):
-                     setattr(type_post, field, value)
+                if (value not in ('', 'null') and value is not None) and hasattr(typepost, field):
+                     setattr(typepost, field, value)
             
-            type_post.save()
+            typepost.save()
             
-            serializer = TypePostSerializer(type_post)
+            serializer = TypePostSerializer(typepost)
             return Response(serializer.data)
         except Exception as e:
             return Response({
@@ -837,6 +836,7 @@ class TypePostUpdateAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
 class TypePostDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
