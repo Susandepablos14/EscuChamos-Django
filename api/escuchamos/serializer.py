@@ -206,3 +206,25 @@ class TypePostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return TypePost.objects.create(**validated_data)
+    
+#-----------------------------------------------------------------------------------------------------
+# Estados de pedido
+#-----------------------------------------------------------------------------------------------------
+    
+class OrderStatusesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderStatuses 
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at']
+
+    def validate_name(self, value):
+        if OrderStatuses.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un estado de pedido con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return OrderStatuses.objects.create(**validated_data)

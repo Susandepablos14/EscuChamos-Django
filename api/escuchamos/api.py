@@ -878,3 +878,158 @@ class TypePostRestoreAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+#-----------------------------------------------------------------------------------------------------
+# CRUD ESTADOS DE PEDIDO
+#-----------------------------------------------------------------------------------------------------
+
+class OrderStatusesIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request):
+        try:
+            order_statuses = OrderStatuses.objects.all()
+
+            if request.query_params:
+                order_status_filter = OrderStatusesFilter(request.query_params, queryset=order_statuses)
+                order_statuses = order_status_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination() 
+                paginated_order_statuses = pagination.paginate_queryset(order_statuses, request)
+                serializer = OrderStatusesSerializer(paginated_order_statuses, many=True)
+                return pagination.get_paginated_response({"order_statuses": serializer.data})
+            
+            serializer = OrderStatusesSerializer(order_statuses, many=True)
+            return Response({"order_statuses": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class OrderStatusesStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_type_post'
+
+    def post(self, request):
+        try:
+            serializer = OrderStatusesSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Estado de orden registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class OrderStatusesShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_type_post'
+
+    def get(self, request, pk):
+        try:
+            order_status = OrderStatuses.objects.filter(pk=pk).first()
+            if not order_status:
+                return Response({
+                    "mensaje":
+"El ID del estado de orden no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = OrderStatusesSerializer(order_status)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class OrderStatusesUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_type-post'
+           
+    def put(self, request, pk):
+        try:
+
+            if not OrderStatuses.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            orderstatus = get_object_or_404(OrderStatuses, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(orderstatus, field):
+                     setattr(orderstatus, field, value)
+            
+            orderstatus.save()
+            
+            serializer = OrderStatusesSerializer(orderstatus)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+class OrderStatusesDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def delete(self, request, pk):
+        try:
+            order_status = get_object_or_404(OrderStatuses, pk=pk)
+            order_status.delete()
+            return Response({"message": "¡Estado de orden eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class OrderStatusesRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_type_posts']
+
+    def get(self, request, pk):
+        try:
+            order_status = get_object_or_404(OrderStatuses, pk=pk, deleted_at__isnull=False)
+            order_status.deleted_at = None
+            order_status.save()
+            return Response({"message": "¡Estado de orden restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

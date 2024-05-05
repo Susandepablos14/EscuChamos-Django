@@ -284,3 +284,30 @@ class File(models.Model):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Estados de pedido
+#-----------------------------------------------------------------------------------------------------
+
+class   OrderStatuses(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'order-statuses'
+        verbose_name = 'Estado de pedido'
+        verbose_name_plural = 'Estado de pedidos'
+
+    def _str_(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()

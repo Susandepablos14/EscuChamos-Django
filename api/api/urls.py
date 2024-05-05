@@ -42,5 +42,12 @@ urlpatterns = [
     path('type-post/update/<int:pk>/', TypePostUpdateAPIView.as_view(), name='type-post-update'),
     path('type-post/delete/<int:pk>/', TypePostDeleteAPIView.as_view(), name='type-post-delete'),
     path('type-post/restore/<int:pk>/', TypePostRestoreAPIView.as_view(), name='type-post-restore'),
+
+    path('order-status/', OrderStatusesIndexAPIView.as_view(), name='order-status-index'),
+    path('order-status/create/', OrderStatusesStoreAPIView.as_view(), name='order-status-store'),
+    path('order-status/<int:pk>/', OrderStatusesShowAPIView.as_view(), name='order-status-show'),
+    path('order-status/update/<int:pk>/', OrderStatusesUpdateAPIView.as_view(), name='order-status-update'),
+    path('order-status/delete/<int:pk>/', OrderStatusesDeleteAPIView.as_view(), name='order-status-delete'),
+    path('order-status/restore/<int:pk>/', OrderStatusesRestoreAPIView.as_view(), name='order-status-restore'),
 ]
 urlpatterns += staticfiles_urlpatterns()

@@ -161,3 +161,25 @@ class TypePostFilter(django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains'
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro Estados de pedido
+#-----------------------------------------------------------------------------------------------------
+
+class OrderStatusesFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = Unit
+        fields = [
+            'name',
+            'description',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
