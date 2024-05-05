@@ -73,16 +73,16 @@ class Command(BaseCommand):
             Status.objects.get_or_create(name=name, description=description)
 
     def seed_units(self):
-            units = [
-                {'name': 'Tableta', 'description': 'Una forma de dosificación sólida que generalmente contiene un medicamento, y que está destinada para ser ingerida por vía oral.'},
-                {'name': 'Cápsula', 'description': 'Una forma de dosificación sólida que consiste en un envase duro o blando, generalmente de gelatina, que contiene medicamento en forma de polvo, líquido o gránulos.'},
-                {'name': 'Miligramo', 'description': 'Es una unidad de medida de masa que equivale a una milésima parte de un gramo'},
-                {'name': 'Microgramo', 'description': 'Es una unidad de medida de masa que equivale a una millonésima parte de un gramo'},
-                {'name': 'Unidad Internacional', 'description': 'Una unidad de medida estandarizada para expresar la cantidad de una sustancia biológicamente activa'},
-                {'name': 'Mililitro', 'description': 'Es una unidad de medida de volumen que equivale a una milésima parte de un litro'},
-                {'name': 'Gotas', 'description': 'Pequeñas cantidades de líquido que se administran usando un gotero.'},
-            ]
-            for unit_data in units:
-                Unit.objects.get_or_create(**unit_data)
+        units = [
+            {'name': 'Tableta', 'description': 'Una forma de dosificación sólida que generalmente contiene un medicamento, y que está destinada para ser ingerida por vía oral.'},
+            {'name': 'Cápsula', 'description': 'Una forma de dosificación sólida que consiste en un envase duro o blando, generalmente de gelatina, que contiene medicamento en forma de polvo, líquido o gránulos.'},
+            {'name': 'Miligramo', 'description': 'Es una unidad de medida de masa que equivale a una milésima parte de un gramo'},
+            {'name': 'Microgramo', 'description': 'Es una unidad de medida de masa que equivale a una millonésima parte de un gramo'},
+            {'name': 'Unidad Internacional', 'description': 'Una unidad de medida estandarizada para expresar la cantidad de una sustancia biológicamente activa'},
+            {'name': 'Mililitro', 'description': 'Es una unidad de medida de volumen que equivale a una milésima parte de un litro'},
+            {'name': 'Gotas', 'description': 'Pequeñas cantidades de líquido que se administran usando un gotero.'},
+        ]
+        for unit_data in units:
+            Unit.objects.get_or_create(**unit_data)
     
     
