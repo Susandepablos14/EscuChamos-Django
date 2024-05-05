@@ -297,7 +297,7 @@ class   OrderStatuses(models.Model):
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
 
     class Meta:
-        db_table = 'order-statuses'
+        db_table = 'order_statuses'
         verbose_name = 'Estado de pedido'
         verbose_name_plural = 'Estado de pedidos'
 
