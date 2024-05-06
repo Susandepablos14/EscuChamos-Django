@@ -250,3 +250,25 @@ class GenderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Gender.objects.create(**validated_data)
+    
+#-----------------------------------------------------------------------------------------------------
+# Tipo de persona
+#-----------------------------------------------------------------------------------------------------
+    
+class TypePersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TypePerson 
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at']
+
+    def validate_name(self, value):
+        if TypePerson.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un tipo de persona con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return TypePerson.objects.create(**validated_data)

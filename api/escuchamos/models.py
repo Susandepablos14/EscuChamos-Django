@@ -338,3 +338,30 @@ class   Gender(models.Model):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Tipo de persona
+#-----------------------------------------------------------------------------------------------------
+
+class TypePerson(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'type_persons'
+        verbose_name = 'Tipo de persona'
+        verbose_name_plural = 'Tipo de persona'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
