@@ -320,7 +320,7 @@ class BenefitedSerializer(serializers.ModelSerializer):
                   'activity_id', 
                   'gender_id', 
                   'quantity', 
-                #   'observation', 
+                  'observation', 
                   'created_at',
                   'updated_at',
                   'deleted_at',

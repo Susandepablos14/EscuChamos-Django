@@ -424,6 +424,7 @@ class Benefited(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.PROTECT, null=True)
     gender = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True)
     quantity = models.IntegerField()
+    observation = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
