@@ -260,24 +260,20 @@ class ActivityFilter (django_filters.FilterSet):
 #-----------------------------------------------------------------------------------------------------
 
 class BenefitedFilter(django_filters.FilterSet):
-    type_person__name = django_filters.CharFilter(lookup_expr='icontains')
-    activity__name = django_filters.CharFilter(lookup_expr='icontains')
-    gender__name = django_filters.CharFilter(lookup_expr='icontains')
+    type_person = django_filters.CharFilter(lookup_expr='icontains')
+    activity = django_filters.CharFilter(lookup_expr='icontains')
+    gender = django_filters.CharFilter(lookup_expr='icontains')
     quantity = django_filters.NumberFilter()
-    created_at = django_filters.DateFilter()
-    updated_at = django_filters.DateFilter()
-    deleted_at = django_filters.DateFilter()
+    observation = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = Benefited
         fields = [
-            'type_person__name',
-            'activity__name',
-            'gender__name',
+            'type_person',
+            'activity',
+            'gender',
             'quantity',
-            'created_at',
-            'updated_at',
-            'deleted_at'
+            'observation',
         ]
 
     def __init__(self, *args, **kwargs):

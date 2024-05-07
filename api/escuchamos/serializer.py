@@ -314,6 +314,7 @@ class BenefitedSerializer(serializers.ModelSerializer):
                   'activity', 
                   'gender', 
                   'quantity', 
+                  'observation',
                   'created_at',
                   'updated_at',
                   'deleted_at'
