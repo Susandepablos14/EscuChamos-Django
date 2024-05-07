@@ -67,10 +67,12 @@ urlpatterns = [
     path('type-person/delete/<int:pk>/', TypePersonDeleteAPIView.as_view(), name='type-person-delete'),
     path('type-person/restore/<int:pk>/', TypePersonRestoreAPIView.as_view(), name='type-person-restore'),
 
-    path('activity/', GenderIndexAPIView.as_view(), name='activity-index'),
-    path('activity/create/', GenderStoreAPIView.as_view(), name='activity-create'),
-    path('activity/<int:pk>/', GenderShowAPIView.as_view(), name='activity-show'),
-    path('activity/update/<int:pk>/', GenderUpdateAPIView.as_view(), name='activity-update'),
-    path('activity/delete/<int:pk>/', GenderDeleteAPIView.as_view(), name='activity-delete'),
-    path('activity/restore/<int:pk>/', GenderRestoreAPIView.as_view(), name='gender-restore'),
+    path('activity/', ActivityIndexAPIView.as_view(), name='activity-index'),
+    path('activity/create/', ActivityStoreAPIView.as_view(), name='activity-create'),
+    path('activity/<int:pk>/', ActivityShowAPIView.as_view(), name='activity-show'),
+    path('activity/update/<int:pk>/', ActivityUpdateAPIView.as_view(), name='activity-update'),
+    path('activity/delete/<int:pk>/', ActivityDeleteAPIView.as_view(), name='activity-delete'),
+    path('activity/restore/<int:pk>/', ActivityRestoreAPIView.as_view(), name='gender-restore'),
+
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

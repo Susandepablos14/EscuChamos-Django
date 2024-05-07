@@ -276,29 +276,32 @@ class TypePersonSerializer(serializers.ModelSerializer):
 #-----------------------------------------------------------------------------------------------------
 # Actividades
 #-----------------------------------------------------------------------------------------------------
-    
+
 class ActivitySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.IntegerField(write_only=True) 
+    
+    def create(self, validated_data):
+        user_id = validated_data.pop('user_id')
+        activity = super().create(validated_data)
+        user = User.objects.get(pk=user_id)
+        activity.user = user
+        activity.save()
+        return activity
+
     class Meta:
-        model = Activity 
-        fields = ['id', 
+        model = Activity
+        fields = ['id',  
                   'name', 
                   'description', 
-                  'place', 
+                  'place',
+                  'user_id',
                   'created_at',
                   'updated_at',
-                  'deleted_at'
+                  'deleted_at',  
                   'user', ]
+        
 
-    def validate_name(self, value):
-        if Activity.objects.filter(name=value).exists():
-            raise serializers.ValidationError("Ya existe un tipo de persona con este nombre.")
-        return value
-
-    def create(self, validated_data):
-        return Activity.objects.create(**validated_data)
-    
 #-----------------------------------------------------------------------------------------------------
 # Beneficiados
 #-----------------------------------------------------------------------------------------------------

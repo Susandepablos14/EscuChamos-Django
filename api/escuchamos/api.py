@@ -1455,20 +1455,24 @@ class ActivityUpdateAPIView(APIView):
 
     def put(self, request, pk):
         try:
-            activity = Activity.objects.filter(pk=pk).first()
-            if not activity:
+
+            if not Activity.objects.filter(pk=pk).exists():
                 return Response({
-                    "message": "El ID de actividad no está registrado."
+                    "message": "El ID no está registrado"
                 }, status=status.HTTP_404_NOT_FOUND)
+            
+            activity = get_object_or_404(Activity, pk=pk)
             
             data = request.data
             
-            serializer = ActivitySerializer(activity, data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(activity, field):
+                     setattr(activity, field, value)
+            
+            activity.save()
+            
+            serializer = ActivitySerializer(activity)
+            return Response(serializer.data)
         except Exception as e:
             return Response({
                 "data": {
@@ -1477,6 +1481,7 @@ class ActivityUpdateAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
 class ActivityDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
