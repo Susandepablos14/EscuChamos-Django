@@ -1193,6 +1193,7 @@ class GenderRestoreAPIView(APIView):
 #-----------------------------------------------------------------------------------------------------
 # CRUD TIPO DE PERSONA
 #-----------------------------------------------------------------------------------------------------
+
 class TypePersonIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -1344,3 +1345,155 @@ class TypePersonRestoreAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# #-----------------------------------------------------------------------------------------------------
+# # CRUD ACTIVIDADES
+# #-----------------------------------------------------------------------------------------------------
+
+class ActivityIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_activity'
+
+    def get(self, request):
+        try:
+            activities = Activity.objects.all()
+
+            activity_filter = ActivityFilter(request.query_params, queryset=activities)
+            filtered_activities = activity_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_activities = pagination.paginate_queryset(filtered_activities, request)
+                serializer = ActivitySerializer(paginated_activities, many=True)
+                return pagination.get_paginated_response({"activities": serializer.data})
+            
+            serializer = ActivitySerializer(filtered_activities, many=True)
+            return Response({"activities": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+           
+class ActivityStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_activity'
+
+    def post(self, request):
+        try:
+            serializer = ActivitySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Actividad registrada exitosamente!"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                "error": "Se produjo un error interno",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+class ActivityShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_activity'
+
+    def get(self, request, pk):
+        try:
+
+            activity = Activity.objects.filter(pk=pk).first()
+            if not activity:
+                return Response({
+                    "mensaje": "El ID de actividad no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = ActivitySerializer(activity)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
+class ActivityUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_activity'
+
+    def put(self, request, pk):
+        try:
+            activity = Activity.objects.filter(pk=pk).first()
+            if not activity:
+                return Response({
+                    "message": "El ID de actividad no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            data = request.data
+            
+            serializer = ActivitySerializer(activity, data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ActivityDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_activity'
+
+    def delete(self, request, pk):
+        try:
+            activity = get_object_or_404(Activity, pk=pk)
+            activity.delete()
+            return Response({"message": "¡Actividad eliminada exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ActivityRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_activity'
+
+    def get(self, request, pk):
+        try:
+            activity = get_object_or_404(Activity, pk=pk, deleted_at__isnull=False)
+            activity.deleted_at = None
+            activity.save()
+            return Response({"message": "¡Actividad restaurada exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        

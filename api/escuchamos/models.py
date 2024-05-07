@@ -373,6 +373,7 @@ class TypePerson(models.Model):
 class Activity(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    place = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='activities')
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)

@@ -213,13 +213,39 @@ class GenderFilter(django_filters.FilterSet):
 class TypePersonFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     description = django_filters.CharFilter(lookup_expr='icontains')
-    abbreviation = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
-        model = Unit
+        model = TypePerson
         fields = [
             'name',
             'description',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro actividades
+#-----------------------------------------------------------------------------------------------------
+
+class ActivityFilter (django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
+    place = django_filters.CharFilter(lookup_expr='icontains')
+    role_id = django_filters.NumberFilter(field_name='role__id') 
+
+    class Meta:
+        model = Activity
+        fields = [
+            'name',
+            'description',
+            'place',
+            'role_id'
         ]
 
     def __init__(self, *args, **kwargs):

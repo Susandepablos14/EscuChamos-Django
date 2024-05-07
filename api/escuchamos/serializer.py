@@ -272,3 +272,30 @@ class TypePersonSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return TypePerson.objects.create(**validated_data)
+    
+#-----------------------------------------------------------------------------------------------------
+# Actividades
+#-----------------------------------------------------------------------------------------------------
+    
+class ActivitySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    user_id = serializers.IntegerField(write_only=True) 
+    class Meta:
+        model = Activity 
+        fields = ['id', 
+                  'name', 
+                  'description', 
+                  'place', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at'
+                  'user', ]
+
+    def validate_name(self, value):
+        if Activity.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un tipo de persona con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Activity.objects.create(**validated_data)
+    
