@@ -10,6 +10,7 @@ class Command(BaseCommand):
         self.seed_statuses()
         self.seed_units()
         self.seed_genders()
+        self.seed_type_persons()
 
     def seed_countries(self):
         countries = [
@@ -95,4 +96,19 @@ class Command(BaseCommand):
         for gender_data in genders:
             Gender.objects.get_or_create(**gender_data)
 
-    
+    def seed_type_persons(self):
+        types = [
+            {'name': 'Niño', 'description': 'Persona en edad infantil.'},
+            {'name': 'Adolescente', 'description': 'Persona en edad adolescente.'},
+            {'name': 'Adulto', 'description': 'Persona en edad adulta.'},
+            {'name': 'Adulto mayor', 'description': 'Persona en edad avanzada.'},
+            {'name': 'Discapacidad', 'description': 'Persona con alguna discapacidad.'},
+            {'name': 'Embarazada', 'description': 'Mujer en estado de embarazo.'},
+            {'name': 'Estudiante', 'description': 'Persona que está estudiando.'},
+            {'name': 'Trabajador', 'description': 'Persona que trabaja regularmente.'},
+            {'name': 'Desempleado', 'description': 'Persona que está desempleada.'},
+            {'name': 'Indígena', 'description': 'Persona perteneciente a una comunidad indígena.'},
+        ]
+        for type_data in types:
+            TypePerson.objects.get_or_create(**type_data)
+
