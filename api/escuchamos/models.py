@@ -394,3 +394,32 @@ class Activity(models.Model):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Beneficiados
+#-----------------------------------------------------------------------------------------------------
+
+class Benefited(models.Model):
+    type_person = models.ForeignKey(TypePerson, on_delete=models.PROTECT, null=True)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT, null=True)
+    gender = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True)
+    quantity = models.IntegerField()
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'benefiteds'
+        verbose_name = 'Beneficiado'
+        verbose_name_plural = 'Beneficiados'
+
+    def _str_(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
