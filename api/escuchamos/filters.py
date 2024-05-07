@@ -254,3 +254,35 @@ class ActivityFilter (django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains'
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro beneficiados
+#-----------------------------------------------------------------------------------------------------
+
+class BenefitedFilter(django_filters.FilterSet):
+    type_person__name = django_filters.CharFilter(lookup_expr='icontains')
+    activity__name = django_filters.CharFilter(lookup_expr='icontains')
+    gender__name = django_filters.CharFilter(lookup_expr='icontains')
+    quantity = django_filters.NumberFilter()
+    created_at = django_filters.DateFilter()
+    updated_at = django_filters.DateFilter()
+    deleted_at = django_filters.DateFilter()
+
+    class Meta:
+        model = Benefited
+        fields = [
+            'type_person__name',
+            'activity__name',
+            'gender__name',
+            'quantity',
+            'created_at',
+            'updated_at',
+            'deleted_at'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'

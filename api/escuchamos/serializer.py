@@ -299,3 +299,28 @@ class ActivitySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Activity.objects.create(**validated_data)
     
+#-----------------------------------------------------------------------------------------------------
+# Beneficiados
+#-----------------------------------------------------------------------------------------------------
+
+class BenefitedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Benefited
+        fields = ['id', 
+                  'type_person', 
+                  'activity', 
+                  'gender', 
+                  'quantity', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at'
+                  ]
+
+    def validate_quantity(self, value):
+        if value < 0:
+            raise serializers.ValidationError("La cantidad debe ser un número positivo.")
+        return value
+
+    def create(self, validated_data):
+        return Benefited.objects.create(**validated_data)
+    
