@@ -4,7 +4,7 @@ from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-
+from .mixins import StoresFileMixin
 #-----------------------------------------------------------------------------------------------------
 # País 
 #-----------------------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class UserManager(BaseUserManager):
 # Usuario 
 #-----------------------------------------------------------------------------------------------------
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, StoresFileMixin):
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     email = models.EmailField('Correo Electrónico', max_length=255, unique=True)
@@ -132,6 +132,26 @@ class User(AbstractBaseUser, PermissionsMixin):
     def restore(self, *args, **kwargs):
         self.deleted_at = None
         self.save()
+        
+    def upload_photo(self, photo_file, image_type):
+        if image_type not in ['perfil', 'portada']:
+            raise ValueError("El tipo de imagen debe ser 'perfil' o 'portada'")
+        
+        if image_type == 'perfil':
+            destination_path = 'user_photos/perfil/'
+        else:
+            destination_path = 'user_photos/portada/'
+
+        # Guarda la foto utilizando el mixin
+        stored_info = self.store_file(file=photo_file, destination_path=destination_path)
+        # Crea y guarda un registro en la base de datos
+        File.objects.create(
+            fileable_type=ContentType.objects.get_for_model(self),
+            fileable_id=self.id,
+            path=stored_info[0],
+            extension=stored_info[1],
+            size=stored_info[2]
+        )
 
 #-----------------------------------------------------------------------------------------------------
 # Estado

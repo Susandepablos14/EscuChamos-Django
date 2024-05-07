@@ -1,6 +1,7 @@
 from django.urls import path
 from escuchamos.api import *
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', WelcomeAPIView.as_view(), name=''),
@@ -15,6 +16,8 @@ urlpatterns = [
     path('user/update/<int:pk>/', UserUpdateAPIView.as_view(), name='user-update'),
     path('user/delete/<int:pk>/', UserDeleteAPIView.as_view(), name='user-delete'),
     path('user/restore/<int:pk>/', UserRestoreAPIView.as_view(), name='user-restore'),
+    
+    path('user/photo/upload/', UserPhotoUpload.as_view(), name='user-photo-upload'),
 
     path('country/', CountryIndexAPIView.as_view(), name='country-index'),
     path('country/<int:pk>/', CountryShowAPIView.as_view(), name='country-show'),
@@ -63,5 +66,4 @@ urlpatterns = [
     path('type-person/update/<int:pk>/', TypePersonUpdateAPIView.as_view(), name='type-person-update'),
     path('type-person/delete/<int:pk>/', TypePersonDeleteAPIView.as_view(), name='type-person-delete'),
     path('type-person/restore/<int:pk>/', TypePersonRestoreAPIView.as_view(), name='type-person-restore'),
-]
-urlpatterns += staticfiles_urlpatterns()
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

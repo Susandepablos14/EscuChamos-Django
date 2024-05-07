@@ -307,12 +307,33 @@ class UserRestoreAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+#-----------------------------------------------------------------------------------------------------
+# PERFIL
+#-----------------------------------------------------------------------------------------------------    
+class UserPhotoUpload(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_user'
     
+    def post(self, request, format=None):
+        try:
+            serializer = UserSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                user = serializer.save()
+                photo_file = request.data.get('photo')  # Obtén el archivo de la solicitud POST
+                image_type = request.data.get('image_type')  # Obtén el tipo de imagen de la solicitud POST
+                if image_type not in ['perfil', 'portada']:
+                    return Response({'error': 'El tipo de imagen debe ser "perfil" o "portada"'}, status=status.HTTP_400_BAD_REQUEST)
+                user.upload_photo(photo_file, image_type=image_type)  # Llama al método upload_photo() en el modelo User con el tipo de imagen
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)     
+        
 #-----------------------------------------------------------------------------------------------------
 # CRUD PAISES
 #-----------------------------------------------------------------------------------------------------
-  
 
 class CountryIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
