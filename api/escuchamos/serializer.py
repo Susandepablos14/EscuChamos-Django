@@ -307,16 +307,26 @@ class ActivitySerializer(serializers.ModelSerializer):
 #-----------------------------------------------------------------------------------------------------
 
 class BenefitedSerializer(serializers.ModelSerializer):
+    typeperson = TypePersonSerializer(read_only=True)
+    typeperson_id = serializers.PrimaryKeyRelatedField(queryset=TypePerson.objects.all(), write_only=True)
+    activity =ActivitySerializer(read_only=True)
+    activity_id = serializers.PrimaryKeyRelatedField(queryset=Activity.objects.all(), write_only=True)
+    gender = GenderSerializer(read_only=True)
+    gender_id = serializers.PrimaryKeyRelatedField(queryset= Gender.objects.all(), write_only=True)
     class Meta:
         model = Benefited
         fields = ['id', 
+                  'type_person_id', 
+                  'activity_id', 
+                  'gender_id', 
+                  'quantity', 
+                #   'observation', 
+                  'created_at',
+                  'updated_at',
+                  'deleted_at',
                   'type_person', 
                   'activity', 
                   'gender', 
-                  'quantity', 
-                  'created_at',
-                  'updated_at',
-                  'deleted_at'
                   ]
 
     def validate_quantity(self, value):
@@ -325,5 +335,19 @@ class BenefitedSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        return Benefited.objects.create(**validated_data)
-    
+        type_person_id = validated_data.pop('type_person_id', None)
+        activity_id = validated_data.pop('activity_id', None)
+        gender_id = validated_data.pop('gender_id', None)
+
+        benefited = Benefited.objects.create(**validated_data)
+
+        if type_person_id:
+            benefited.type_person = type_person_id
+        if activity_id:
+            benefited.activity = activity_id
+        if gender_id:
+            benefited.gender = gender_id
+
+        benefited.save()
+        return benefited
+        

@@ -72,7 +72,6 @@ urlpatterns = [
     path('activity/<int:pk>/', ActivityShowAPIView.as_view(), name='activity-show'),
     path('activity/update/<int:pk>/', ActivityUpdateAPIView.as_view(), name='activity-update'),
     path('activity/delete/<int:pk>/', ActivityDeleteAPIView.as_view(), name='activity-delete'),
-    path('activity/restore/<int:pk>/', ActivityRestoreAPIView.as_view(), name='gender-restore'),
-
+    path('activity/restore/<int:pk>/', ActivityRestoreAPIView.as_view(), name='activity-restore'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
