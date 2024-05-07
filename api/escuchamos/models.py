@@ -289,7 +289,7 @@ class File(models.Model):
 # Estados de pedido
 #-----------------------------------------------------------------------------------------------------
 
-class   OrderStatuses(models.Model):
+class OrderStatuses(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
@@ -316,7 +316,7 @@ class   OrderStatuses(models.Model):
 # Genero
 #-----------------------------------------------------------------------------------------------------
 
-class   Gender(models.Model):
+class Gender(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
@@ -356,6 +356,34 @@ class TypePerson(models.Model):
         verbose_name_plural = 'Tipo de persona'
 
     def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Actividad
+#-----------------------------------------------------------------------------------------------------
+
+class Activity(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='activities')
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'activities'
+        verbose_name = 'Actividad'
+        verbose_name_plural = 'Actividades'
+
+    def _str_(self):
         return self.name
 
     def delete(self, *args, **kwargs):
