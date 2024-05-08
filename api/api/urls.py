@@ -74,4 +74,11 @@ urlpatterns = [
     path('activity/delete/<int:pk>/', ActivityDeleteAPIView.as_view(), name='activity-delete'),
     path('activity/restore/<int:pk>/', ActivityRestoreAPIView.as_view(), name='activity-restore'),
 
+    path('benefited/', BenefitedIndexAPIView.as_view(), name='benefited-index'),
+    path('benefited/create/', BenefitedStoreAPIView.as_view(), name='benefited-create'),
+    path('benefited/<int:pk>/', BenefitedShowAPIView.as_view(), name='benefited-show'),
+    path('benefited/update/<int:pk>/', BenefitedUpdateAPIView.as_view(), name='benefited-update'),
+    path('benefited/delete/<int:pk>/', BenefitedDeleteAPIView.as_view(), name='benefited-delete'),
+    path('benefited/restore/<int:pk>/', BenefitedRestoreAPIView.as_view(), name='benefited-restore'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

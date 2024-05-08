@@ -307,8 +307,8 @@ class ActivitySerializer(serializers.ModelSerializer):
 #-----------------------------------------------------------------------------------------------------
 
 class BenefitedSerializer(serializers.ModelSerializer):
-    typeperson = TypePersonSerializer(read_only=True)
-    typeperson_id = serializers.PrimaryKeyRelatedField(queryset=TypePerson.objects.all(), write_only=True)
+    type_person = TypePersonSerializer(read_only=True)
+    type_person_id = serializers.PrimaryKeyRelatedField(queryset=TypePerson.objects.all(), write_only=True)
     activity =ActivitySerializer(read_only=True)
     activity_id = serializers.PrimaryKeyRelatedField(queryset=Activity.objects.all(), write_only=True)
     gender = GenderSerializer(read_only=True)

@@ -1525,3 +1525,152 @@ class ActivityRestoreAPIView(APIView):
 # #-----------------------------------------------------------------------------------------------------
 # # CRUD BENEFICIADOS
 # #-----------------------------------------------------------------------------------------------------
+
+class BenefitedIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_activity'
+
+    def get(self, request):
+        try:
+            benefited = Benefited.objects.all()
+
+            benefited_filter = BenefitedFilter(request.query_params, queryset=benefited)
+            filtered_benefited = benefited_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_benefited = pagination.paginate_queryset(filtered_benefited, request)
+                serializer = BenefitedSerializer(paginated_benefited, many=True)
+                return pagination.get_paginated_response({"benefited": serializer.data})
+            
+            serializer = BenefitedSerializer(filtered_benefited, many=True)
+            return Response({"benefited": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BenefitedStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_activity'
+
+    def post(self, request):
+        try:
+            serializer = BenefitedSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Beneficiario registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                "error": "Se produjo un error interno",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BenefitedShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_activity'
+
+    def get(self, request, pk):
+        try:
+
+            benefited = Benefited.objects.filter(pk=pk).first()
+            if not benefited:
+                return Response({
+                    "mensaje": "El ID del beneficiario no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = BenefitedSerializer(benefited)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BenefitedUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_activity'
+
+    def put(self, request, pk):
+        try:
+
+            if not Benefited.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            benefited = get_object_or_404(Benefited, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(benefited, field):
+                     setattr(benefited, field, value)
+            
+            benefited.save()
+            
+            serializer = BenefitedSerializer(benefited)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BenefitedDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_activity'
+
+    def delete(self, request, pk):
+        try:
+            benefited = get_object_or_404(Benefited, pk=pk)
+            benefited.delete()
+            return Response({"message": "¡Beneficiario eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BenefitedRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_activity'
+
+    def get(self, request, pk):
+        try:
+            benefited = get_object_or_404(Benefited, pk=pk, deleted_at__isnull=False)
+            benefited.deleted_at = None
+            benefited.save()
+            return Response({"message": "¡Beneficiario restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
