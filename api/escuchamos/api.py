@@ -1385,10 +1385,10 @@ class ActivityIndexAPIView(APIView):
             if 'pag' in request.query_params:
                 pagination = CustomPagination()
                 paginated_activities = pagination.paginate_queryset(filtered_activities, request)
-                serializer = ActivitySerializer(paginated_activities, many=True)
+                serializer = ActivityIndexSerializer(paginated_activities, many=True)
                 return pagination.get_paginated_response({"activities": serializer.data})
             
-            serializer = ActivitySerializer(filtered_activities, many=True)
+            serializer = ActivityIndexSerializer(filtered_activities, many=True)
             return Response({"activities": serializer.data})
         
         except Exception as e:

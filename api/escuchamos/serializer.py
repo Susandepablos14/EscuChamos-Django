@@ -352,6 +352,9 @@ class BenefitedSerializer(serializers.ModelSerializer):
         benefited.save()
         return benefited
         
+#-----------------------------------------------------------------------------------------------------
+# Actividades mostrar beneficiados
+#-----------------------------------------------------------------------------------------------------
 
 class ActivityIndexSerializer(serializers.ModelSerializer):
     benefited = BenefitedSerializer(many=True, read_only=True)
@@ -360,13 +363,14 @@ class ActivityIndexSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ['id',
-                  'date', 
-                  'user_id',  
-                  'total_price',    
-                  'created_at', 
+        fields = ['id',  
+                  'name', 
+                  'description', 
+                  'place',
+                  'user_id',
+                  'created_at',
                   'updated_at',
-                  'deleted_at',
+                  'deleted_at',  
                   'user',
                   'benefited'
                 ]
