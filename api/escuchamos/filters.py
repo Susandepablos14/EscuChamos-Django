@@ -282,3 +282,28 @@ class BenefitedFilter(django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains'
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro Productos
+#-----------------------------------------------------------------------------------------------------
+class ProductFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    descirption = django_filters.CharFilter(lookup_expr='icontains')
+    unit_id = django_filters.NumberFilter()
+    category_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = Product
+        fields = [
+            'name',
+            'descirption',
+            'unit_id',
+            'category_id',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].lookup_expr = 'icontains'
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'

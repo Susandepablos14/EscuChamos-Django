@@ -81,4 +81,11 @@ urlpatterns = [
     path('benefited/delete/<int:pk>/', BenefitedDeleteAPIView.as_view(), name='benefited-delete'),
     path('benefited/restore/<int:pk>/', BenefitedRestoreAPIView.as_view(), name='benefited-restore'),
 
+    path('product/', ProductIndexAPIView.as_view(), name='product-index'),
+    path('product/create/', ProductStoreAPIView.as_view(), name='product-create'),
+    path('product/<int:pk>/', ProductShowAPIView.as_view(), name='product-show'),
+    path('product/update/<int:pk>/', ProductUpdateAPIView.as_view(), name='product-update'),
+    path('product/delete/<int:pk>/', ProductDeleteAPIView.as_view(), name='product-delete'),
+    path('product/restore/<int:pk>/', ProductRestoreAPIView.as_view(), name='product-restore'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

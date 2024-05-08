@@ -1674,3 +1674,152 @@ class BenefitedRestoreAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ProductIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_product'
+
+    def get(self, request):
+        try:
+            product = Product.objects.all()
+
+            product_filter = ProductFilter(request.query_params, queryset=product)
+            filtered_product = product_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_product = pagination.paginate_queryset(filtered_product, request)
+                serializer = ProductSerializer(paginated_product, many=True)
+                return pagination.get_paginated_response({"product": serializer.data})
+            
+            serializer = ProductSerializer(filtered_product, many=True)
+            return Response({"product": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ProductStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_product'
+
+    def post(self, request):
+        try:
+            serializer = ProductSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Producto registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                "error": "Se produjo un error interno",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ProductShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_product'
+
+    def get(self, request, pk):
+        try:
+
+            product = Product.objects.filter(pk=pk).first()
+            if not product:
+                return Response({
+                    "mensaje": "El ID del producto no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = ProductSerializer(product)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ProductUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_product'
+
+    def put(self, request, pk):
+        try:
+
+            if not Product.objects.filter(pk=pk).exists():
+                return Response({
+                    "message": "El ID no está registrado"
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            product = get_object_or_404(Product, pk=pk)
+            
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(product, field):
+                     setattr(product, field, value)
+            
+            product.save()
+            
+            serializer = ProductSerializer(product)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ProductDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_product'
+
+    def delete(self, request, pk):
+        try:
+            product = get_object_or_404(Product, pk=pk)
+            product.delete()
+            return Response({"message": "¡Producto eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class ProductRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_activity'
+
+    def get(self, request, pk):
+        try:
+            product = get_object_or_404(Product, pk=pk, deleted_at__isnull=False)
+            product.deleted_at = None
+            product.save()
+            return Response({"message": "¡Producto restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

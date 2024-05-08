@@ -350,4 +350,43 @@ class BenefitedSerializer(serializers.ModelSerializer):
 
         benefited.save()
         return benefited
+
+#-----------------------------------------------------------------------------------------------------
+# Productos
+#-----------------------------------------------------------------------------------------------------
+
+class ProductSerializer(serializers.ModelSerializer):
+    unit = UnitSerializer(read_only=True)
+    unit_id = serializers.PrimaryKeyRelatedField(queryset=Unit.objects.all(), write_only=True)
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), write_only=True)
+    
+    class Meta:
+        model = Product
+        fields = ['id',
+                  'name',
+                  'description',
+                  'unit_id',
+                  'category_id',
+                  'unit',
+                  'category',
+                  ]
         
+    def validate_quantity(self, value):
+        if value < 0:
+            raise serializers.ValidationError("La cantidad debe ser un número positivo.")
+        return value
+
+    def create(self, validated_data):
+        unit_id = validated_data.pop('unit_id', None)
+        category_id = validated_data.pop('category_id', None)
+
+        product = Product.objects.create(**validated_data)
+
+        if unit_id:
+            product.unit = unit_id
+        if category_id:
+            product.category = category_id
+
+        product.save()
+        return product
