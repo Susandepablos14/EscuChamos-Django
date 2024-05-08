@@ -299,7 +299,8 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'deleted_at',  
-                  'user', ]
+                  'user',
+                    ]
         
 
 #-----------------------------------------------------------------------------------------------------
@@ -351,3 +352,21 @@ class BenefitedSerializer(serializers.ModelSerializer):
         benefited.save()
         return benefited
         
+
+class ActivityIndexSerializer(serializers.ModelSerializer):
+    benefited = BenefitedSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
+    user_id = UserSerializer(write_only=True) 
+
+    class Meta:
+        model = Activity
+        fields = ['id',
+                  'date', 
+                  'user_id',  
+                  'total_price',    
+                  'created_at', 
+                  'updated_at',
+                  'deleted_at',
+                  'user',
+                  'benefited'
+                ]

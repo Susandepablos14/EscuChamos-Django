@@ -1399,26 +1399,44 @@ class ActivityIndexAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-           
+        
 class ActivityStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_activity'
+    # required_permissions = ['add_activity']
 
     def post(self, request):
+        benefited_data = request.data.pop('benefited', None)
+
         try:
-            serializer = ActivitySerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"message": "¡Actividad registrada exitosamente!"}, status=status.HTTP_201_CREATED)
+            user_id = request.data.get('user_id')
+            existing_user = User.objects.filter(id=user_id).exists()
+
+            if existing_user:
+                current_user = User.objects.get(id=user_id)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        except Exception as e:
-            return Response({
-                "error": "Se produjo un error interno",
-                "details": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"message": "El usuario especificado no existe"}, status=status.HTTP_404_NOT_FOUND)
+
+            activity_serializer = ActivitySerializer(data=request.data)
+            if activity_serializer.is_valid():
+                activity = activity_serializer.save(user=current_user)
+            else:
+                return Response(activity_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            if benefited_data:
+                for benefited_item in benefited_data:
+                    benefited_item['activity_id'] = activity.id
+                    benefited_serializer = BenefitedSerializer(data=benefited_item)
+                    if benefited_serializer.is_valid():
+                        benefited_serializer.save()
+                    else:
+                        return Response(benefited_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"message": "Actividad creada satisfactoriamente!"}, status=status.HTTP_201_CREATED)
+
+        except User.DoesNotExist:
+            return Response({"message": "El usuario especificado no existe"}, status=status.HTTP_404_NOT_FOUND)
+
 
         
 class ActivityShowAPIView(APIView):
