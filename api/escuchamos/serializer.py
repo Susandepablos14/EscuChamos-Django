@@ -299,7 +299,8 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'deleted_at',  
-                  'user', ]
+                  'user',
+                    ]
         
 
 #-----------------------------------------------------------------------------------------------------
@@ -390,3 +391,26 @@ class ProductSerializer(serializers.ModelSerializer):
 
         product.save()
         return product
+        
+#-----------------------------------------------------------------------------------------------------
+# Actividades mostrar beneficiados
+#-----------------------------------------------------------------------------------------------------
+
+class ActivityIndexSerializer(serializers.ModelSerializer):
+    benefited = BenefitedSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
+    user_id = UserSerializer(write_only=True) 
+
+    class Meta:
+        model = Activity
+        fields = ['id',  
+                  'name', 
+                  'description', 
+                  'place',
+                  'user_id',
+                  'created_at',
+                  'updated_at',
+                  'deleted_at',  
+                  'user',
+                  'benefited'
+                ]
