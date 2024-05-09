@@ -9,3 +9,5 @@ __pycache__/
 
 # Otros archivos generados automáticamente
 .env
+
+user_photos/
