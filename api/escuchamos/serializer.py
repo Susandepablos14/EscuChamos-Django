@@ -460,7 +460,6 @@ class InputSerializer(serializers.ModelSerializer):
         model = Input
         fields = ['id',
                   'user_id', 
-                  'description',
                   'inventory_id', 
                   'quantity', 
                   'date',
@@ -488,7 +487,6 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['id',
                   'user_id', 
-                  'description',
                   'inventory_id', 
                   'quantity', 
                   'date',

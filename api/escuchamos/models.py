@@ -535,7 +535,6 @@ class Input(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='order')
-    description = models.TextField(blank=True, null=True)
     inventory= models.ForeignKey(Inventory, on_delete=models.PROTECT, related_name='order')
     quantity = models.PositiveIntegerField()
     date = models.DateTimeField('Fecha de la factura', auto_now_add=True)

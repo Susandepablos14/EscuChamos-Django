@@ -337,7 +337,6 @@ class InventoryFilter(django_filters.FilterSet):
 
 class InputFilter(django_filters.FilterSet):
     user_id = django_filters.NumberFilter()
-    description = django_filters.CharFilter(lookup_expr='icontains')
     inventory_id = django_filters.NumberFilter()
     quantity = django_filters.NumberFilter()
     date = django_filters.NumberFilter()
@@ -348,7 +347,6 @@ class InputFilter(django_filters.FilterSet):
         model = Input
         fields = [
                   'user_id', 
-                  'description',
                   'inventory_id', 
                   'quantity', 
                   'date',
@@ -366,7 +364,6 @@ class InputFilter(django_filters.FilterSet):
 
 class OrderFilter(django_filters.FilterSet):
     user_id = django_filters.NumberFilter()
-    description = django_filters.CharFilter(lookup_expr='icontains')
     inventory_id = django_filters.NumberFilter()
     quantity = django_filters.NumberFilter()
     date = django_filters.NumberFilter()
@@ -378,7 +375,6 @@ class OrderFilter(django_filters.FilterSet):
         model = Order
         fields = [
             'user_id', 
-            'description',
             'inventory_id', 
             'quantity', 
             'date',

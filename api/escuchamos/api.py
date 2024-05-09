@@ -1850,6 +1850,7 @@ class ProductRestoreAPIView(APIView):
 # #-----------------------------------------------------------------------------------------------------
 # # CRUD INVENTARIO
 # #-----------------------------------------------------------------------------------------------------
+
 class InventoryIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -1870,13 +1871,13 @@ class InventoryIndexAPIView(APIView):
             else:
                 serializer = InventorySerializer(inventories, many=True)
 
-            for inventory_data in serializer.data:
-                product_data = inventory_data.get('product')
-                if product_data and 'img' in product_data:
+            # for inventory_data in serializer.data:
+            #     product_data = inventory_data.get('product')
+            #     if product_data and 'img' in product_data:
 
-                    product_data['image_url'] = settings.PRODUCT_IMAGE_BASE_URL + str(product_data['img'])
+            #         product_data['image_url'] = settings.PRODUCT_IMAGE_BASE_URL + str(product_data['img'])
 
-                    product_data.pop('img')
+            #         product_data.pop('img')
 
             if 'pag' in request.query_params:
                 return pagination.get_paginated_response({"inventories": serializer.data})
