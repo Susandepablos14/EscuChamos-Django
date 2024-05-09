@@ -45,6 +45,14 @@ class StatusSerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'deleted_at',  ]
+
+    def validate_name(self, value):
+        if Status.objects.filter(name=value).exists():
+            raise serializers.ValidationError("Ya existe un status con este nombre.")
+        return value
+
+    def create(self, validated_data):
+        return Status.objects.create(**validated_data)
         
 #-----------------------------------------------------------------------------------------------------
 # Usuario

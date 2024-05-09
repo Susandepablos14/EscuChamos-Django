@@ -409,6 +409,27 @@ class StatusIndexAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class StatusStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_status'
+
+    def post(self, request):
+        try:
+            serializer = StatusSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡Estado registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class StatusShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -420,7 +441,7 @@ class StatusShowAPIView(APIView):
             status_obj = Status.objects.filter(pk=pk).first()
             if not status_obj:
                 return Response({
-                    "mensaje": "El ID de estado no está registrado."
+                    "mensaje": "El ID del estado no está registrado."
                 }, status=status.HTTP_404_NOT_FOUND)
 
             serializer = StatusSerializer(status_obj)
@@ -435,6 +456,75 @@ class StatusShowAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class StatusUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_status'
+
+    def put(self, request, pk):
+        try:
+
+            try:
+                status = Status.objects.get(pk=pk)
+            except Status.DoesNotExist:
+                return Response({"message": "El ID del estado no está registrado"}, status=status.HTTP_404_NOT_FOUND)
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(status, field):
+                     setattr(status, field, value)
+
+            status.save()
+
+            serializer = StatusSerializer(status)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class StatusDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_Statuss']
+
+    def delete(self, request, pk):
+        try:
+            statuses = get_object_or_404(Status, pk=pk)
+            statuses.delete()
+            return Response({"message": "¡Estado eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class StatusRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_Status'
+
+    def get(self, request, pk):
+        try:
+            statuses = get_object_or_404(Status, pk=pk, deleted_at__isnull=False)
+            statuses.deleted_at = None
+            statuses.save()
+            return Response({"message": "¡Categoría restaurada exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #-----------------------------------------------------------------------------------------------------
 # CRUD CATEGORIAS

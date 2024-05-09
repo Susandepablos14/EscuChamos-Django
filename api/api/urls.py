@@ -23,7 +23,11 @@ urlpatterns = [
     path('country/<int:pk>/', CountryShowAPIView.as_view(), name='country-show'),
 
     path('status/', StatusIndexAPIView.as_view(), name='status-index'),
+    path('status/create/', StatusStoreAPIView.as_view(), name='status-create'),
     path('status/<int:pk>/', StatusShowAPIView.as_view(), name='status-show'),
+    path('status/update/<int:pk>/', StatusUpdateAPIView.as_view(), name='status-update'),
+    path('status/delete/<int:pk>/', StatusDeleteAPIView.as_view(), name='status-delete'),
+    path('status/restore/<int:pk>/', StatusRestoreAPIView.as_view(), name='status-restore'),
 
     path('category/', CategoryIndexAPIView.as_view(), name='category-index'),
     path('category/create/', CategoryStoreAPIView.as_view(), name='category-create'),
