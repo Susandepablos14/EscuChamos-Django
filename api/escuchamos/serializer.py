@@ -418,3 +418,87 @@ class ProductSerializer(serializers.ModelSerializer):
 
         product.save()
         return product
+    
+#-----------------------------------------------------------------------------------------------------
+# Inventario
+#-----------------------------------------------------------------------------------------------------
+
+class InventorySerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+
+    class Meta:
+        model = Inventory
+        fields = ['id',
+                  'product_id',
+                  'quantity',  
+                  'created_at', 
+                  'updated_at',
+                  'deleted_at',
+                  'product']
+
+    def create(self, validated_data):
+        inventory_instance = Inventory.objects.create(**validated_data)
+        input_data = {
+            'inventory_id': inventory_instance.id,
+            'quantity': inventory_instance.quantity
+        }
+        input_instance = Input.objects.create(**input_data)
+
+        return inventory_instance
+    
+#-----------------------------------------------------------------------------------------------------
+# Entrada
+#-----------------------------------------------------------------------------------------------------
+
+class InputSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    inventory = InventorySerializer(read_only=True)
+    inventory_id = serializers.PrimaryKeyRelatedField(queryset=Inventory.objects.all(), write_only=True)
+    class Meta:
+        model = Input
+        fields = ['id',
+                  'user_id', 
+                  'description',
+                  'inventory_id', 
+                  'quantity', 
+                  'date',
+                  'created_at', 
+                  'updated_at',
+                  'deleted_at',
+                  'user',
+                  'inventory']
+
+    def create(self, validated_data):
+        return Input.objects.create(**validated_data)
+   
+#-----------------------------------------------------------------------------------------------------
+# Recipe
+#-----------------------------------------------------------------------------------------------------
+
+class OrderSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    inventory = InventorySerializer(read_only=True)
+    inventory_id = serializers.PrimaryKeyRelatedField(queryset=Inventory.objects.all(), write_only=True)
+    order_status = OrderStatusesSerializer(read_only=True)
+    order_status_id = serializers.PrimaryKeyRelatedField(queryset=OrderStatuses.objects.all(), write_only=True)
+    class Meta:
+        model = Order
+        fields = ['id',
+                  'user_id', 
+                  'description',
+                  'inventory_id', 
+                  'quantity', 
+                  'date',
+                  'order_status_id'
+                  'created_at', 
+                  'updated_at',
+                  'deleted_at',
+                  'user',
+                  'inventory',
+                  'order_status']
+
+    def create(self, validated_data):
+        return Order.objects.create(**validated_data)

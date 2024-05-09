@@ -1693,6 +1693,11 @@ class BenefitedRestoreAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# #-----------------------------------------------------------------------------------------------------
+# # CRUD PRODUCTOS
+# #-----------------------------------------------------------------------------------------------------
+
+
 class ProductIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -1825,7 +1830,7 @@ class ProductDeleteAPIView(APIView):
 class ProductRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'delete_activity'
+    # required_permissions = 'delete_product'
 
     def get(self, request, pk):
         try:
@@ -1833,6 +1838,260 @@ class ProductRestoreAPIView(APIView):
             product.deleted_at = None
             product.save()
             return Response({"message": "¡Producto restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+# #-----------------------------------------------------------------------------------------------------
+# # CRUD INVENTARIO
+# #-----------------------------------------------------------------------------------------------------
+class InventoryIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_inventory'
+
+    def get(self, request):
+        try:
+            inventories = Inventory.objects.all()
+
+            if request.query_params:
+                inventory_filter = InventoryFilter(request.query_params, queryset=inventories)
+                inventories = inventory_filter.qs
+                
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_inventories = pagination.paginate_queryset(inventories, request)
+                serializer = InventorySerializer(paginated_inventories, many=True)
+            else:
+                serializer = InventorySerializer(inventories, many=True)
+
+            for inventory_data in serializer.data:
+                product_data = inventory_data.get('product')
+                if product_data and 'img' in product_data:
+
+                    product_data['image_url'] = settings.PRODUCT_IMAGE_BASE_URL + str(product_data['img'])
+
+                    product_data.pop('img')
+
+            if 'pag' in request.query_params:
+                return pagination.get_paginated_response({"inventories": serializer.data})
+            else:
+                return Response({"inventories": serializer.data})
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class InventoryAddInputAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        product_id = request.data.get('product_id')
+        quantity = request.data.get('quantity')
+        user = request.user
+
+        if not Product.objects.filter(id=product_id).exists():
+            return Response({"message": "Este producto no existe."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            inventory = Inventory.objects.get(product_id=product_id)
+            inventory.quantity += int(quantity)
+            inventory.save()
+
+            Input.objects.create(
+                inventory=inventory,
+                quantity=quantity,
+                user=user
+            )
+
+            return Response({"message": "¡El inventario se actualizó exitosamente!", "Cantidad actual": inventory.quantity}, status=status.HTTP_200_OK)
+        except Inventory.DoesNotExist:
+            product = Product.objects.get(id=product_id)
+            inventory = Inventory.objects.create(product=product, quantity=quantity)
+
+            Input.objects.create(
+                inventory=inventory,
+                quantity=quantity,
+                user=user
+            )
+            return Response({"message": f"¡Producto agregado exitosamente!", "Cantidad actual": inventory.quantity}, status=status.HTTP_201_CREATED)
+        
+class InventorySubOutputAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_inventory'
+
+    def post(self, request):
+        products = request.data.get('products', [])
+        try:
+            
+            
+            for product in products:
+                product_id = product.get('product_id')
+                quantity = product.get('quantity')
+
+                inventory = Inventory.objects.get(product_id=product_id)
+                if inventory.quantity < quantity:
+                    return Response({"message": f"La cantidad solicitada para el producto {inventory.product.name} es mayor que la cantidad en inventario", "cantidad existente": inventory.quantity}, status=status.HTTP_400_BAD_REQUEST)
+
+                Order.objects.create(
+                    inventory=inventory,
+                    quantity=quantity
+                )
+
+        except Inventory.DoesNotExist:
+            return Response({"message": f"Uno de los productos no existe en el inventario"}, status=status.HTTP_404_NOT_FOUND)
+
+class InventoryShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_inventory'
+
+    def get(self, request, pk):
+        try:
+
+            inventory = Inventory.objects.filter(pk=pk).first()
+            
+            if not inventory:
+                return Response({
+                    "mensaje": "El ID del inventario no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            inventory_serializer = InventorySerializer(inventory)
+
+            return Response(inventory_serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# #-----------------------------------------------------------------------------------------------------
+# # CRUD ENTRADAS
+# #-----------------------------------------------------------------------------------------------------
+
+class InputIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_input'
+
+    def get(self, request):
+        try:
+            inputs = Input.objects.all()
+
+            if request.query_params:
+                input_filter = InputFilter(request.query_params, queryset=inputs)
+                inputs = input_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_inputs = pagination.paginate_queryset(inputs, request)
+                serializer = InputSerializer(paginated_inputs, many=True)
+                return pagination.get_paginated_response({"inputs": serializer.data})
+
+            serializer = InputSerializer(inputs, many=True)
+            return Response({"inputs": serializer.data})
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class InputShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_input'
+
+    def get(self, request, pk):
+        try:
+            input_obj = Input.objects.filter(pk=pk).first()
+            if not input_obj:
+                return Response({
+                    "mensaje": "El ID de la entrada no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = InputSerializer(input_obj)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+# #-----------------------------------------------------------------------------------------------------
+# # CRUD RECIPES
+# #-----------------------------------------------------------------------------------------------------
+
+class OrderIndexAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_order'
+
+    def get(self, request):
+        try:
+            orders = Order.objects.all()
+
+            if request.query_params:
+                order_filter = OrderFilter(request.query_params, queryset=orders)
+                orders = order_filter.qs
+
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_orders = pagination.paginate_queryset(orders, request)
+                serializer = OrderSerializer(paginated_orders, many=True)
+                return pagination.get_paginated_response({"orders": serializer.data})
+
+            serializer = OrderSerializer(orders, many=True)
+            return Response({"orders": serializer.data})
+
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class OrderShowAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'view_order'
+
+    def get(self, request, pk):
+        try:
+            order_obj = Order.objects.filter(pk=pk).first()
+            if not order_obj:
+                return Response({
+                    "mensaje": "El ID de la entrada no está registrado."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = OrderSerializer(order_obj)
+            return Response(serializer.data)
+
         except Exception as e:
             return Response({
                 "data": {

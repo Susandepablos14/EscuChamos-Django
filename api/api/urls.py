@@ -88,4 +88,15 @@ urlpatterns = [
     path('product/delete/<int:pk>/', ProductDeleteAPIView.as_view(), name='product-delete'),
     path('product/restore/<int:pk>/', ProductRestoreAPIView.as_view(), name='product-restore'),
 
+    path('inventory/', InventoryIndexAPIView.as_view(), name='inventory-index'),
+    path('inventory/add/', InventoryAddInputAPIView.as_view(), name='inventory-add'),
+    path('inventory/sub/', InventorySubOutputAPIView.as_view(), name='inventory-subtraction'),
+    path('inventory/<int:pk>/', InventoryShowAPIView.as_view(), name='inventory-show'),
+
+    path('input/',InputIndexAPIView.as_view(), name='input-index'),
+    path('input/<int:pk>/',InputShowAPIView.as_view(), name='input-show'),
+
+    path('order/', OrderIndexAPIView.as_view(), name='order-index'),
+    path('order/<int:pk>/', OrderShowAPIView.as_view(), name='order-show'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

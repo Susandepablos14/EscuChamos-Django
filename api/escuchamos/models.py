@@ -458,12 +458,99 @@ class Product(models.Model):
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
 
     class Meta:
-        db_table = 'pruducts'
+        db_table = 'products'
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
 
     def _str_(self):
         return self.name
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Inventario
+#-----------------------------------------------------------------------------------------------------
+
+class Inventory(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, null=True, related_name='inventory')
+    quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'inventories'
+        verbose_name = 'Inventario'
+        verbose_name_plural = 'Inventarios'
+
+    def _str_(self):
+        return f"Inventario de {self.product_id.name}"
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Entradas
+#-----------------------------------------------------------------------------------------------------
+
+class Input(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='input')
+    inventory= models.ForeignKey(Inventory, on_delete=models.PROTECT, related_name='input')
+    quantity = models.PositiveIntegerField()
+    date = models.DateTimeField('Fecha', auto_now_add=True)
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'inputs'
+        verbose_name = 'Entrada'
+        verbose_name_plural = 'Entradas'
+
+    def __str__(self):
+        return f"Input #{self.pk}"
+
+    def delete(self, *args, **kwargs):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.deleted_at = None
+        self.save()
+
+#-----------------------------------------------------------------------------------------------------
+# Recipes
+#-----------------------------------------------------------------------------------------------------
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='order')
+    description = models.TextField(blank=True, null=True)
+    inventory= models.ForeignKey(Inventory, on_delete=models.PROTECT, related_name='order')
+    quantity = models.PositiveIntegerField()
+    date = models.DateTimeField('Fecha de la factura', auto_now_add=True)
+    orderstatuses= models.ForeignKey(OrderStatuses, on_delete=models.PROTECT, related_name='order')
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+
+    class Meta:
+        db_table = 'orders'
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
+
+    def __str__(self):
+        return f"Order #{self.pk}"
 
     def delete(self, *args, **kwargs):
         self.deleted_at = timezone.now()

@@ -288,7 +288,7 @@ class BenefitedFilter(django_filters.FilterSet):
 #-----------------------------------------------------------------------------------------------------
 class ProductFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
-    descirption = django_filters.CharFilter(lookup_expr='icontains')
+    description = django_filters.CharFilter(lookup_expr='icontains')
     unit_id = django_filters.NumberFilter()
     category_id = django_filters.NumberFilter()
 
@@ -296,7 +296,7 @@ class ProductFilter(django_filters.FilterSet):
         model = Product
         fields = [
             'name',
-            'descirption',
+            'description',
             'unit_id',
             'category_id',
         ]
@@ -307,3 +307,86 @@ class ProductFilter(django_filters.FilterSet):
             if 'icontains' in self.filters[field_name].lookup_expr:
                 self.filters[field_name].lookup_expr = 'icontains'
                 self.filters[field_name].label = f'{self.filters[field_name].label} (similarity)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro Inventario
+#-----------------------------------------------------------------------------------------------------
+
+class InventoryFilter(django_filters.FilterSet):
+    product_id = django_filters.NumberFilter()
+    quantity = django_filters.NumberFilter()
+    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
+    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
+
+    class Meta:
+        model = Inventory
+        fields = [
+            'product_id',
+            'quantity',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro Entradas
+#-----------------------------------------------------------------------------------------------------
+
+class InputFilter(django_filters.FilterSet):
+    user_id = django_filters.NumberFilter()
+    description = django_filters.CharFilter(lookup_expr='icontains')
+    inventory_id = django_filters.NumberFilter()
+    quantity = django_filters.NumberFilter()
+    date = django_filters.NumberFilter()
+    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
+    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
+
+    class Meta:
+        model = Input
+        fields = [
+                  'user_id', 
+                  'description',
+                  'inventory_id', 
+                  'quantity', 
+                  'date',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'
+
+#-----------------------------------------------------------------------------------------------------
+# Filtro Recipes
+#-----------------------------------------------------------------------------------------------------
+
+class OrderFilter(django_filters.FilterSet):
+    user_id = django_filters.NumberFilter()
+    description = django_filters.CharFilter(lookup_expr='icontains')
+    inventory_id = django_filters.NumberFilter()
+    quantity = django_filters.NumberFilter()
+    date = django_filters.NumberFilter()
+    order_status_id = django_filters.NumberFilter()
+    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
+    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
+
+    class Meta:
+        model = Order
+        fields = [
+            'user_id', 
+            'description',
+            'inventory_id', 
+            'quantity', 
+            'date',
+            'order_status_id'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.filters:
+            if 'icontains' in self.filters[field_name].lookup_expr:
+                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'
