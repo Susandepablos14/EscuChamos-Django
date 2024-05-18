@@ -309,7 +309,7 @@ class File(models.Model):
 # Estados de pedido
 #-----------------------------------------------------------------------------------------------------
 
-class OrderStatuses(models.Model):
+class OrderStatus(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
@@ -421,7 +421,7 @@ class Activity(models.Model):
 
 class Benefited(models.Model):
     type_person = models.ForeignKey(TypePerson, on_delete=models.PROTECT, null=True)
-    activity = models.ForeignKey(Activity, on_delete=models.PROTECT, null=True)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT, null=True, related_name='benefiteds')
     gender = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True)
     quantity = models.IntegerField()
     observation = models.TextField(blank=True, null=True)
@@ -530,23 +530,23 @@ class Input(models.Model):
         self.save()
 
 #-----------------------------------------------------------------------------------------------------
-# Recipes
+# Pedidos - Recipes
 #-----------------------------------------------------------------------------------------------------
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=True, related_name='order')
     inventory= models.ForeignKey(Inventory, on_delete=models.PROTECT, related_name='order')
     quantity = models.PositiveIntegerField()
-    date = models.DateTimeField('Fecha de la factura', auto_now_add=True)
-    orderstatuses= models.ForeignKey(OrderStatuses, on_delete=models.PROTECT, related_name='order')
+    date = models.DateTimeField('Fecha del pedido', auto_now_add=True)
+    order_status= models.ForeignKey(OrderStatus, on_delete=models.PROTECT, related_name='order')
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
 
     class Meta:
         db_table = 'orders'
-        verbose_name = 'Recipe'
-        verbose_name_plural = 'Recipes'
+        verbose_name = 'Pedido'
+        verbose_name_plural = 'Pedidos'
 
     def __str__(self):
         return f"Order #{self.pk}"

@@ -20,7 +20,11 @@ urlpatterns = [
     path('user/photo/upload/', UserPhotoUpload.as_view(), name='user-photo-upload'),
 
     path('country/', CountryIndexAPIView.as_view(), name='country-index'),
+    path('country/create/', CountryStoreAPIView.as_view(), name='country-create'),
     path('country/<int:pk>/', CountryShowAPIView.as_view(), name='country-show'),
+    path('country/update/<int:pk>/', CountryUpdateAPIView.as_view(), name='country-update'),
+    path('country/delete/<int:pk>/', CountryDeleteAPIView.as_view(), name='country-delete'),
+    path('country/restore/<int:pk>/', CountryRestoreAPIView.as_view(), name='country-restore'),
 
     path('status/', StatusIndexAPIView.as_view(), name='status-index'),
     path('status/create/', StatusStoreAPIView.as_view(), name='status-create'),
@@ -50,12 +54,12 @@ urlpatterns = [
     path('type-post/delete/<int:pk>/', TypePostDeleteAPIView.as_view(), name='type-post-delete'),
     path('type-post/restore/<int:pk>/', TypePostRestoreAPIView.as_view(), name='type-post-restore'),
 
-    path('order-status/', OrderStatusesIndexAPIView.as_view(), name='order-status-index'),
-    path('order-status/create/', OrderStatusesStoreAPIView.as_view(), name='order-status-create'),
-    path('order-status/<int:pk>/', OrderStatusesShowAPIView.as_view(), name='order-status-show'),
-    path('order-status/update/<int:pk>/', OrderStatusesUpdateAPIView.as_view(), name='order-status-update'),
-    path('order-status/delete/<int:pk>/', OrderStatusesDeleteAPIView.as_view(), name='order-status-delete'),
-    path('order-status/restore/<int:pk>/', OrderStatusesRestoreAPIView.as_view(), name='order-status-restore'),
+    path('order-status/', OrderStatusIndexAPIView.as_view(), name='order-status-index'),
+    path('order-status/create/', OrderStatusStoreAPIView.as_view(), name='order-status-create'),
+    path('order-status/<int:pk>/', OrderStatusShowAPIView.as_view(), name='order-status-show'),
+    path('order-status/update/<int:pk>/', OrderStatusUpdateAPIView.as_view(), name='order-status-update'),
+    path('order-status/delete/<int:pk>/', OrderStatusDeleteAPIView.as_view(), name='order-status-delete'),
+    path('order-status/restore/<int:pk>/', OrderStatusRestoreAPIView.as_view(), name='order-status-restore'),
 
     path('gender/', GenderIndexAPIView.as_view(), name='gender-index'),
     path('gender/create/', GenderStoreAPIView.as_view(), name='gender-create'),
@@ -103,4 +107,4 @@ urlpatterns = [
     path('order/', OrderIndexAPIView.as_view(), name='order-index'),
     path('order/<int:pk>/', OrderShowAPIView.as_view(), name='order-show'),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

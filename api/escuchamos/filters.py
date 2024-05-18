@@ -9,7 +9,7 @@ class UserFilter(django_filters.FilterSet):
     email = django_filters.CharFilter(lookup_expr='icontains')
     name = django_filters.CharFilter(lookup_expr='icontains')
     last_name = django_filters.CharFilter(lookup_expr='icontains')
-    role_id = django_filters.NumberFilter(field_name='role__id') 
+    role_id = django_filters.NumberFilter() 
     document = django_filters.CharFilter(lookup_expr='icontains')
     address = django_filters.CharFilter(lookup_expr='icontains')
     phone_number = django_filters.CharFilter(lookup_expr='icontains')
@@ -166,7 +166,7 @@ class TypePostFilter(django_filters.FilterSet):
 # Filtro Estados de pedido
 #-----------------------------------------------------------------------------------------------------
 
-class OrderStatusesFilter(django_filters.FilterSet):
+class OrderStatusFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     description = django_filters.CharFilter(lookup_expr='icontains')
 
@@ -237,7 +237,7 @@ class ActivityFilter (django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     description = django_filters.CharFilter(lookup_expr='icontains')
     place = django_filters.CharFilter(lookup_expr='icontains')
-    role_id = django_filters.NumberFilter(field_name='role__id') 
+    user_id = django_filters.NumberFilter() 
 
     class Meta:
         model = Activity
@@ -245,7 +245,7 @@ class ActivityFilter (django_filters.FilterSet):
             'name',
             'description',
             'place',
-            'role_id'
+            'user_id'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -260,19 +260,19 @@ class ActivityFilter (django_filters.FilterSet):
 #-----------------------------------------------------------------------------------------------------
 
 class BenefitedFilter(django_filters.FilterSet):
-    type_person = django_filters.CharFilter(lookup_expr='icontains')
-    activity = django_filters.CharFilter(lookup_expr='icontains')
-    gender = django_filters.CharFilter(lookup_expr='icontains')
     quantity = django_filters.NumberFilter()
+    activity_id = django_filters.NumberFilter() 
+    gender_id = django_filters.NumberFilter() 
+    type_person_id = django_filters.NumberFilter() 
     observation = django_filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         model = Benefited
         fields = [
-            'type_person',
-            'activity',
-            'gender',
             'quantity',
+            'activity_id',
+            'gender_id',
+            'type_person_id',
             'observation',
         ]
 
@@ -313,23 +313,17 @@ class ProductFilter(django_filters.FilterSet):
 #-----------------------------------------------------------------------------------------------------
 
 class InventoryFilter(django_filters.FilterSet):
-    product_id = django_filters.NumberFilter()
     quantity = django_filters.NumberFilter()
-    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
-    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
+    inventory_id = django_filters.NumberFilter()
+    user_id = django_filters.NumberFilter()
 
     class Meta:
         model = Inventory
         fields = [
-            'product_id',
             'quantity',
+            'inventory_id',
+            'user_id'
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name in self.filters:
-            if 'icontains' in self.filters[field_name].lookup_expr:
-                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'
 
 #-----------------------------------------------------------------------------------------------------
 # Filtro Entradas
@@ -339,9 +333,7 @@ class InputFilter(django_filters.FilterSet):
     user_id = django_filters.NumberFilter()
     inventory_id = django_filters.NumberFilter()
     quantity = django_filters.NumberFilter()
-    date = django_filters.NumberFilter()
-    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
-    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
+    date = django_filters.DateFilter(lookup_expr='date')
 
     class Meta:
         model = Input
@@ -352,12 +344,6 @@ class InputFilter(django_filters.FilterSet):
                   'date',
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name in self.filters:
-            if 'icontains' in self.filters[field_name].lookup_expr:
-                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'
-
 #-----------------------------------------------------------------------------------------------------
 # Filtro Recipes
 #-----------------------------------------------------------------------------------------------------
@@ -366,10 +352,8 @@ class OrderFilter(django_filters.FilterSet):
     user_id = django_filters.NumberFilter()
     inventory_id = django_filters.NumberFilter()
     quantity = django_filters.NumberFilter()
-    date = django_filters.NumberFilter()
+    date = django_filters.DateFilter(lookup_expr='date')
     order_status_id = django_filters.NumberFilter()
-    created_at = django_filters.DateFilter(field_name='created_at', lookup_expr='date')
-    updated_at = django_filters.DateFilter(field_name='updated_at', lookup_expr='date')
 
     class Meta:
         model = Order
@@ -380,9 +364,3 @@ class OrderFilter(django_filters.FilterSet):
             'date',
             'order_status_id'
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name in self.filters:
-            if 'icontains' in self.filters[field_name].lookup_expr:
-                self.filters[field_name].label = f'{self.filters[field_name].label} (similaridad)'

@@ -61,6 +61,7 @@ class StatusSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
     role_id = serializers.IntegerField(write_only=True) 
+    country = CountrySerializer(read_only=True)
     country_id = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True, source='country')
 
 
@@ -105,7 +106,9 @@ class UserSerializer(serializers.ModelSerializer):
                   'created_at',
                   'updated_at',
                   'deleted_at',  
-                  'role', ]
+                  'role',
+                  'country'
+                  ]
         extra_kwargs = {
             'password': {'write_only': True},  
         }
@@ -219,9 +222,9 @@ class TypePostSerializer(serializers.ModelSerializer):
 # Estados de pedido
 #-----------------------------------------------------------------------------------------------------
     
-class OrderStatusesSerializer(serializers.ModelSerializer):
+class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderStatuses 
+        model = OrderStatus
         fields = ['id', 
                   'name', 
                   'description', 
@@ -230,12 +233,12 @@ class OrderStatusesSerializer(serializers.ModelSerializer):
                   'deleted_at']
 
     def validate_name(self, value):
-        if OrderStatuses.objects.filter(name=value).exists():
+        if OrderStatus.objects.filter(name=value).exists():
             raise serializers.ValidationError("Ya existe un estado de pedido con este nombre.")
         return value
 
     def create(self, validated_data):
-        return OrderStatuses.objects.create(**validated_data)
+        return OrderStatus.objects.create(**validated_data)
     
 #-----------------------------------------------------------------------------------------------------
 # Generos
@@ -282,20 +285,12 @@ class TypePersonSerializer(serializers.ModelSerializer):
         return TypePerson.objects.create(**validated_data)
     
 #-----------------------------------------------------------------------------------------------------
-# Actividades
+# Actividades simple
 #-----------------------------------------------------------------------------------------------------
 
-class ActivitySerializer(serializers.ModelSerializer):
+class ActivitySimpleSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    user_id = serializers.IntegerField(write_only=True) 
-    
-    def create(self, validated_data):
-        user_id = validated_data.pop('user_id')
-        activity = super().create(validated_data)
-        user = User.objects.get(pk=user_id)
-        activity.user = user
-        activity.save()
-        return activity
+    user_id = UserSerializer(write_only=True) 
 
     class Meta:
         model = Activity
@@ -306,10 +301,10 @@ class ActivitySerializer(serializers.ModelSerializer):
                   'user_id',
                   'created_at',
                   'updated_at',
-                  'deleted_at',  
+                  'deleted_at', 
                   'user',
-                    ]
-        
+                  'benefiteds',
+                ]        
 
 #-----------------------------------------------------------------------------------------------------
 # Beneficiados
@@ -318,17 +313,17 @@ class ActivitySerializer(serializers.ModelSerializer):
 class BenefitedSerializer(serializers.ModelSerializer):
     type_person = TypePersonSerializer(read_only=True)
     type_person_id = serializers.PrimaryKeyRelatedField(queryset=TypePerson.objects.all(), write_only=True)
-    activity =ActivitySerializer(read_only=True)
+    activity =ActivitySimpleSerializer(read_only=True)
     activity_id = serializers.PrimaryKeyRelatedField(queryset=Activity.objects.all(), write_only=True)
     gender = GenderSerializer(read_only=True)
     gender_id = serializers.PrimaryKeyRelatedField(queryset= Gender.objects.all(), write_only=True)
     class Meta:
         model = Benefited
-        fields = ['id', 
+        fields = ['id',
+                  'quantity',  
                   'type_person_id', 
                   'activity_id', 
                   'gender_id', 
-                  'quantity', 
                   'observation', 
                   'created_at',
                   'updated_at',
@@ -360,15 +355,22 @@ class BenefitedSerializer(serializers.ModelSerializer):
         benefited.save()
         return benefited
 
-        
 #-----------------------------------------------------------------------------------------------------
-# Actividades mostrar beneficiados
+# Actividades
 #-----------------------------------------------------------------------------------------------------
 
-class ActivityIndexSerializer(serializers.ModelSerializer):
-    benefited = BenefitedSerializer(many=True, read_only=True)
+class ActivitySerializer(serializers.ModelSerializer):
+    benefiteds = BenefitedSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
-    user_id = UserSerializer(write_only=True) 
+    user_id = serializers.IntegerField(write_only=True) 
+    
+    def create(self, validated_data):
+        user_id = validated_data.pop('user_id')
+        activity = super().create(validated_data)
+        user = User.objects.get(pk=user_id)
+        activity.user = user
+        activity.save()
+        return activity
 
     class Meta:
         model = Activity
@@ -381,8 +383,8 @@ class ActivityIndexSerializer(serializers.ModelSerializer):
                   'updated_at',
                   'deleted_at',  
                   'user',
-                  'benefited'
-                ]
+                  'benefiteds'
+                    ]
 
 #-----------------------------------------------------------------------------------------------------
 # Productos
@@ -489,8 +491,8 @@ class OrderSerializer(serializers.ModelSerializer):
     user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
     inventory = InventorySerializer(read_only=True)
     inventory_id = serializers.PrimaryKeyRelatedField(queryset=Inventory.objects.all(), write_only=True)
-    order_status = OrderStatusesSerializer(read_only=True)
-    order_status_id = serializers.PrimaryKeyRelatedField(queryset=OrderStatuses.objects.all(), write_only=True)
+    order_status = OrderStatusSerializer(read_only=True)
+    order_status_id = serializers.PrimaryKeyRelatedField(queryset=OrderStatus.objects.all(), write_only=True)
     class Meta:
         model = Order
         fields = ['id',

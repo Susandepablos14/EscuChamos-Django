@@ -342,8 +342,38 @@ class CountryIndexAPIView(APIView):
     def get(self, request):
         try:
             countries = Country.objects.all()
-            serializer = CountrySerializer(countries, many=True)
+            
+            country_filter = CountryFilter(request.query_params, queryset=countries)
+            filtered_countries = country_filter.qs
+            if 'pag' in request.query_params:
+                pagination = CustomPagination()
+                paginated_countries = pagination.paginate_queryset(filtered_countries, request)
+                serializer = CountrySerializer(paginated_countries, many=True)
+                return pagination.get_paginated_response({"countries": serializer.data})
+            
+            serializer = CountrySerializer(filtered_countries, many=True)
             return Response({"countries": serializer.data})
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+
+class CountryStoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_country'
+
+    def post(self, request):
+        try:
+            serializer = CountrySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "¡País registrado exitosamente!"}, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
                 "data": {
@@ -374,6 +404,77 @@ class CountryShowAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CountryUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'change_country'
+
+    def put(self, request, pk):
+        try:
+
+            try:
+                country = Country.objects.get(pk=pk)
+            except Country.DoesNotExist:
+                return Response({"message": "El ID del país no está registrado"}, status=status.HTTP_404_NOT_FOUND)
+            data = request.data
+            
+            for field, value in data.items():
+                if (value not in ('', 'null') and value is not None) and hasattr(country, field):
+                     setattr(country, field, value)
+
+            country.save()
+
+            serializer = CountrySerializer(country)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CountryDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = ['delete_country']
+
+    def delete(self, request, pk):
+        try:
+            country = get_object_or_404(Country, pk=pk)
+            country.delete()
+            return Response({"message": "¡País eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class CountryRestoreAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    # required_permissions = 'delete_country'
+
+    def get(self, request, pk):
+        try:
+            country = get_object_or_404(Country, pk=pk, deleted_at__isnull=False)
+            country.deleted_at = None
+            country.save()
+            return Response({"message": "¡País restaurado exitosamente!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
 
 #-----------------------------------------------------------------------------------------------------
@@ -465,16 +566,16 @@ class StatusUpdateAPIView(APIView):
         try:
 
             try:
-                status = Status.objects.get(pk=pk)
+                status_obj = Status.objects.get(pk=pk)
             except Status.DoesNotExist:
                 return Response({"message": "El ID del estado no está registrado"}, status=status.HTTP_404_NOT_FOUND)
             data = request.data
             
             for field, value in data.items():
-                if (value not in ('', 'null') and value is not None) and hasattr(status, field):
-                     setattr(status, field, value)
+                if (value not in ('', 'null') and value is not None) and hasattr(status_obj, field):
+                     setattr(status_obj, field, value)
 
-            status.save()
+            status_obj.save()
 
             serializer = StatusSerializer(status)
             return Response(serializer.data)
@@ -490,12 +591,12 @@ class StatusUpdateAPIView(APIView):
 class StatusDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_Statuss']
+    # required_permissions = ['delete_status']
 
     def delete(self, request, pk):
         try:
-            statuses = get_object_or_404(Status, pk=pk)
-            statuses.delete()
+            status_obj = get_object_or_404(Status, pk=pk)
+            status_obj.delete()
             return Response({"message": "¡Estado eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({
@@ -513,10 +614,10 @@ class StatusRestoreAPIView(APIView):
 
     def get(self, request, pk):
         try:
-            statuses = get_object_or_404(Status, pk=pk, deleted_at__isnull=False)
-            statuses.deleted_at = None
-            statuses.save()
-            return Response({"message": "¡Categoría restaurada exitosamente!"}, status=status.HTTP_200_OK)
+            status_obj = get_object_or_404(Status, pk=pk, deleted_at__isnull=False)
+            status_obj.deleted_at = None
+            status_obj.save()
+            return Response({"message": "¡Estado restaurado exitosamente!"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
                 "data": {
@@ -797,7 +898,7 @@ class UnitUpdateAPIView(APIView):
 class UnitDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_units']
+    # required_permissions = ['delete_unit']
 
     def delete(self, request, pk):
         try:
@@ -816,7 +917,7 @@ class UnitDeleteAPIView(APIView):
 class UnitRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_units']
+    # required_permissions = ['delete_unit']
 
     def get(self, request, pk):
         try:
@@ -840,7 +941,7 @@ class UnitRestoreAPIView(APIView):
 class TypePostIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_typepost'
 
     def get(self, request):
         try:
@@ -871,7 +972,7 @@ class TypePostIndexAPIView(APIView):
 class TypePostStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_type_post'
+    # required_permissions = 'add_typepost'
 
     def post(self, request):
         try:
@@ -892,7 +993,7 @@ class TypePostStoreAPIView(APIView):
 class TypePostShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_typepost'
 
     def get(self, request, pk):
         try:
@@ -917,7 +1018,7 @@ class TypePostShowAPIView(APIView):
 class TypePostUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_type-post'
+    # required_permissions = 'change_typepost'
            
     def put(self, request, pk):
         try:
@@ -927,17 +1028,17 @@ class TypePostUpdateAPIView(APIView):
                     "message": "El ID no está registrado"
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            typepost = get_object_or_404(TypePost, pk=pk)
+            type_post = get_object_or_404(TypePost, pk=pk)
             
             data = request.data
             
             for field, value in data.items():
-                if (value not in ('', 'null') and value is not None) and hasattr(typepost, field):
-                     setattr(typepost, field, value)
+                if (value not in ('', 'null') and value is not None) and hasattr(type_post, field):
+                     setattr(type_post, field, value)
             
-            typepost.save()
+            type_post.save()
             
-            serializer = TypePostSerializer(typepost)
+            serializer = TypePostSerializer(type_post)
             return Response(serializer.data)
         except Exception as e:
             return Response({
@@ -952,7 +1053,7 @@ class TypePostUpdateAPIView(APIView):
 class TypePostDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_typepost']
 
     def delete(self, request, pk):
         try:
@@ -971,7 +1072,7 @@ class TypePostDeleteAPIView(APIView):
 class TypePostRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_typepost']
 
     def get(self, request, pk):
         try:
@@ -993,26 +1094,26 @@ class TypePostRestoreAPIView(APIView):
 # CRUD ESTADOS DE PEDIDO
 #-----------------------------------------------------------------------------------------------------
 
-class OrderStatusesIndexAPIView(APIView):
+class OrderStatusIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_orderstatus'
 
     def get(self, request):
         try:
-            order_statuses = OrderStatuses.objects.all()
+            order_statuses = OrderStatus.objects.all()
 
             if request.query_params:
-                order_status_filter = OrderStatusesFilter(request.query_params, queryset=order_statuses)
+                order_status_filter = OrderStatusFilter(request.query_params, queryset=order_statuses)
                 order_statuses = order_status_filter.qs
 
             if 'pag' in request.query_params:
                 pagination = CustomPagination() 
                 paginated_order_statuses = pagination.paginate_queryset(order_statuses, request)
-                serializer = OrderStatusesSerializer(paginated_order_statuses, many=True)
+                serializer = OrderStatusSerializer(paginated_order_statuses, many=True)
                 return pagination.get_paginated_response({"order_statuses": serializer.data})
             
-            serializer = OrderStatusesSerializer(order_statuses, many=True)
+            serializer = OrderStatusSerializer(order_statuses, many=True)
             return Response({"order_statuses": serializer.data})
         
         except Exception as e:
@@ -1024,14 +1125,14 @@ class OrderStatusesIndexAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class OrderStatusesStoreAPIView(APIView):
+class OrderStatusStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_type_post'
+    # required_permissions = 'add_orderstatus'
 
     def post(self, request):
         try:
-            serializer = OrderStatusesSerializer(data=request.data)
+            serializer = OrderStatusSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message": "¡Estado de orden registrado exitosamente!"}, status=status.HTTP_201_CREATED)
@@ -1045,21 +1146,21 @@ class OrderStatusesStoreAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class OrderStatusesShowAPIView(APIView):
+class OrderStatusShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_orderstatus'
 
     def get(self, request, pk):
         try:
-            order_status = OrderStatuses.objects.filter(pk=pk).first()
+            order_status = OrderStatus.objects.filter(pk=pk).first()
             if not order_status:
                 return Response({
                     "mensaje":
 "El ID del estado de orden no está registrado."
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = OrderStatusesSerializer(order_status)
+            serializer = OrderStatusSerializer(order_status)
             return Response(serializer.data)
 
         except Exception as e:
@@ -1071,30 +1172,30 @@ class OrderStatusesShowAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class OrderStatusesUpdateAPIView(APIView):
+class OrderStatusUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_type-post'
+    # required_permissions = 'change_orderstatus'
            
     def put(self, request, pk):
         try:
 
-            if not OrderStatuses.objects.filter(pk=pk).exists():
+            if not OrderStatus.objects.filter(pk=pk).exists():
                 return Response({
                     "message": "El ID no está registrado"
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            orderstatus = get_object_or_404(OrderStatuses, pk=pk)
+            order_status = get_object_or_404(OrderStatus, pk=pk)
             
             data = request.data
             
             for field, value in data.items():
-                if (value not in ('', 'null') and value is not None) and hasattr(orderstatus, field):
-                     setattr(orderstatus, field, value)
+                if (value not in ('', 'null') and value is not None) and hasattr(order_status, field):
+                     setattr(order_status, field, value)
             
-            orderstatus.save()
+            order_status.save()
             
-            serializer = OrderStatusesSerializer(orderstatus)
+            serializer = OrderStatusSerializer(order_status)
             return Response(serializer.data)
         except Exception as e:
             return Response({
@@ -1106,14 +1207,14 @@ class OrderStatusesUpdateAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         
-class OrderStatusesDeleteAPIView(APIView):
+class OrderStatusDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_orderstatus']
 
     def delete(self, request, pk):
         try:
-            order_status = get_object_or_404(OrderStatuses, pk=pk)
+            order_status = get_object_or_404(OrderStatus, pk=pk)
             order_status.delete()
             return Response({"message": "¡Estado de orden eliminado exitosamente!"}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
@@ -1125,14 +1226,14 @@ class OrderStatusesDeleteAPIView(APIView):
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class OrderStatusesRestoreAPIView(APIView):
+class OrderStatusRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_orderstatus']
 
     def get(self, request, pk):
         try:
-            order_status = get_object_or_404(OrderStatuses, pk=pk, deleted_at__isnull=False)
+            order_status = get_object_or_404(OrderStatus, pk=pk, deleted_at__isnull=False)
             order_status.deleted_at = None
             order_status.save()
             return Response({"message": "¡Estado de orden restaurado exitosamente!"}, status=status.HTTP_200_OK)
@@ -1153,7 +1254,7 @@ class OrderStatusesRestoreAPIView(APIView):
 class GenderIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_gender'
 
     def get(self, request):
         try:
@@ -1184,7 +1285,7 @@ class GenderIndexAPIView(APIView):
 class GenderStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_type_post'
+    # required_permissions = 'add_gender'
 
     def post(self, request):
         try:
@@ -1205,7 +1306,7 @@ class GenderStoreAPIView(APIView):
 class GenderShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_post'
+    # required_permissions = 'view_gender'
 
     def get(self, request, pk):
         try:
@@ -1230,7 +1331,7 @@ class GenderShowAPIView(APIView):
 class GenderUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_type-post'
+    # required_permissions = 'change_gender'
            
     def put(self, request, pk):
         try:
@@ -1265,7 +1366,7 @@ class GenderUpdateAPIView(APIView):
 class GenderDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_gender']
 
     def delete(self, request, pk):
         try:
@@ -1284,7 +1385,7 @@ class GenderDeleteAPIView(APIView):
 class GenderRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_posts']
+    # required_permissions = ['delete_gender']
 
     def get(self, request, pk):
         try:
@@ -1308,15 +1409,15 @@ class GenderRestoreAPIView(APIView):
 class TypePersonIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_persons'
+    # required_permissions = 'view_typeperson'
 
     def get(self, request):
         try:
             type_persons = TypePerson.objects.all()
 
             if request.query_params:
-                type_persons_filter = TypePersonFilter(request.query_params, queryset=type_persons)
-                type_persons = type_persons_filter.qs
+                type_person_filter = TypePersonFilter(request.query_params, queryset=type_persons)
+                type_persons = type_person_filter.qs
 
             if 'pag' in request.query_params:
                 pagination = CustomPagination() 
@@ -1339,7 +1440,7 @@ class TypePersonIndexAPIView(APIView):
 class TypePersonStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_type_persons'
+    # required_permissions = 'add_typeperson'
 
     def post(self, request):
         try:
@@ -1360,7 +1461,7 @@ class TypePersonStoreAPIView(APIView):
 class TypePersonShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_type_person'
+    # required_permissions = 'view_typeperson'
 
     def get(self, request, pk):
         try:
@@ -1385,7 +1486,7 @@ class TypePersonShowAPIView(APIView):
 class TypePersonUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_type_person'
+    # required_permissions = 'change_typeperson'
 
 
     def put(self, request, pk):
@@ -1420,7 +1521,7 @@ class TypePersonUpdateAPIView(APIView):
 class TypePersonDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_person']
+    # required_permissions = ['delete_typeperson']
 
     def delete(self, request, pk):
         try:
@@ -1439,7 +1540,7 @@ class TypePersonDeleteAPIView(APIView):
 class TypePersonRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = ['delete_type_person']
+    # required_permissions = ['delete_typeperson']
 
     def get(self, request, pk):
         try:
@@ -1475,10 +1576,10 @@ class ActivityIndexAPIView(APIView):
             if 'pag' in request.query_params:
                 pagination = CustomPagination()
                 paginated_activities = pagination.paginate_queryset(filtered_activities, request)
-                serializer = ActivityIndexSerializer(paginated_activities, many=True)
+                serializer = ActivitySerializer(paginated_activities, many=True)
                 return pagination.get_paginated_response({"activities": serializer.data})
             
-            serializer = ActivityIndexSerializer(filtered_activities, many=True)
+            serializer = ActivitySerializer(filtered_activities, many=True)
             return Response({"activities": serializer.data})
         
         except Exception as e:
@@ -1637,23 +1738,23 @@ class ActivityRestoreAPIView(APIView):
 class BenefitedIndexAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_activity'
+    # required_permissions = 'view_benefited'
 
     def get(self, request):
         try:
-            benefited = Benefited.objects.all()
+            benefiteds = Benefited.objects.all()
 
-            benefited_filter = BenefitedFilter(request.query_params, queryset=benefited)
-            filtered_benefited = benefited_filter.qs
+            benefited_filter = BenefitedFilter(request.query_params, queryset=benefiteds)
+            filtered_benefiteds = benefited_filter.qs
 
             if 'pag' in request.query_params:
                 pagination = CustomPagination()
-                paginated_benefited = pagination.paginate_queryset(filtered_benefited, request)
-                serializer = BenefitedSerializer(paginated_benefited, many=True)
-                return pagination.get_paginated_response({"benefited": serializer.data})
+                paginated_benefiteds = pagination.paginate_queryset(filtered_benefiteds, request)
+                serializer = BenefitedSerializer(paginated_benefiteds, many=True)
+                return pagination.get_paginated_response({"benefiteds": serializer.data})
             
-            serializer = BenefitedSerializer(filtered_benefited, many=True)
-            return Response({"benefited": serializer.data})
+            serializer = BenefitedSerializer(filtered_benefiteds, many=True)
+            return Response({"benefiteds": serializer.data})
         
         except Exception as e:
             return Response({
@@ -1667,7 +1768,7 @@ class BenefitedIndexAPIView(APIView):
 class BenefitedStoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'add_activity'
+    # required_permissions = 'add_benefited'
 
     def post(self, request):
         try:
@@ -1687,7 +1788,7 @@ class BenefitedStoreAPIView(APIView):
 class BenefitedShowAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'view_activity'
+    # required_permissions = 'view_benefited'
 
     def get(self, request, pk):
         try:
@@ -1713,7 +1814,7 @@ class BenefitedShowAPIView(APIView):
 class BenefitedUpdateAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'change_activity'
+    # required_permissions = 'change_benefited'
 
     def put(self, request, pk):
         try:
@@ -1747,7 +1848,7 @@ class BenefitedUpdateAPIView(APIView):
 class BenefitedDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'delete_activity'
+    # required_permissions = 'delete_benefited'
 
     def delete(self, request, pk):
         try:
@@ -1766,7 +1867,7 @@ class BenefitedDeleteAPIView(APIView):
 class BenefitedRestoreAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    # required_permissions = 'delete_activity'
+    # required_permissions = 'delete_benefited'
 
     def get(self, request, pk):
         try:
@@ -1795,19 +1896,19 @@ class ProductIndexAPIView(APIView):
 
     def get(self, request):
         try:
-            product = Product.objects.all()
+            products = Product.objects.all()
 
-            product_filter = ProductFilter(request.query_params, queryset=product)
-            filtered_product = product_filter.qs
+            product_filter = ProductFilter(request.query_params, queryset=products)
+            filtered_products = product_filter.qs
 
             if 'pag' in request.query_params:
                 pagination = CustomPagination()
-                paginated_product = pagination.paginate_queryset(filtered_product, request)
-                serializer = ProductSerializer(paginated_product, many=True)
-                return pagination.get_paginated_response({"product": serializer.data})
+                paginated_products = pagination.paginate_queryset(filtered_products, request)
+                serializer = ProductSerializer(paginated_products, many=True)
+                return pagination.get_paginated_response({"products": serializer.data})
             
-            serializer = ProductSerializer(filtered_product, many=True)
-            return Response({"product": serializer.data})
+            serializer = ProductSerializer(filtered_products, many=True)
+            return Response({"products": serializer.data})
         
         except Exception as e:
             return Response({
@@ -1986,6 +2087,7 @@ class InventoryIndexAPIView(APIView):
 class InventoryAddInputAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    # required_permissions = 'add_inventory'
 
     def post(self, request):
         product_id = request.data.get('product_id')
@@ -2026,8 +2128,6 @@ class InventorySubOutputAPIView(APIView):
     def post(self, request):
         products = request.data.get('products', [])
         try:
-            
-            
             for product in products:
                 product_id = product.get('product_id')
                 quantity = product.get('quantity')
@@ -2051,7 +2151,6 @@ class InventoryShowAPIView(APIView):
 
     def get(self, request, pk):
         try:
-
             inventory = Inventory.objects.filter(pk=pk).first()
             
             if not inventory:
