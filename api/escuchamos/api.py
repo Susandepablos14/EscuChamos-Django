@@ -47,12 +47,16 @@ class UserLoginAPIView(APIView):
             if user.is_active:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
-                return Response({'message': 'Inicio de sesión exitoso', 'token': token.key, 'usuario': user.id}, status=status.HTTP_200_OK)
+                return Response({
+                    'message': 'Inicio de sesión exitoso',
+                    'token': token.key,
+                    'usuario': user.id,
+                    'role': user.role.id  # Aquí incluimos el nombre del rol del usuario en la respuesta
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
-#-----------------------------------------------------------------------------------------------------
+            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)#-----------------------------------------------------------------------------------------------------
 # Cerrar Sesión
 #-----------------------------------------------------------------------------------------------------
 
