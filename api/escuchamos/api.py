@@ -118,15 +118,34 @@ def send_verification_email(user_email, username, verification_code):
         html_message=html_content,
     )
     
-# class UserVerifyAPIView(APIView):
-#     def get(self, request, token):
-#         try:
-#             user = User.objects.get(email_verification_token=token)
-#             user.is_email_verified = True
-#             user.save()
-#             return Response({'message': 'Tu correo electrónico ha sido verificado exitosamente.'}, status=status.HTTP_200_OK)
-#         except User.DoesNotExist:
-#             return Response({'message': 'El token de verificación no es válido.'}, status=status.HTTP_400_BAD_REQUEST)
+class ResendVerificationCodeAPIView(APIView):
+    def post(self, request):
+        try:
+            user_email = request.data.get('user_email')
+            if not user_email:
+                return Response({'error': 'El campo email es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = User.objects.filter(email=user_email).first()
+            
+            if user and not user.is_email_verified:
+                # Generar un nuevo código de verificación
+                new_verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+                user.verification_code = new_verification_code
+                user.save()
+                
+                # Enviar el nuevo código por correo electrónico
+                send_verification_email(user.email, user.username, new_verification_code)
+                
+                return Response({'message': 'Se ha enviado un nuevo correo electrónico de verificación'}, status=status.HTTP_200_OK)
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class EmailVerificationAPIView(APIView):
