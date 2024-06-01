@@ -22,6 +22,8 @@ from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.contrib.auth.hashers import check_password, make_password
+from django.utils import timezone
+from datetime import timedelta
 import random
 
 #-----------------------------------------------------------------------------------------------------
@@ -44,6 +46,14 @@ class UserLoginAPIView(APIView):
         User = get_user_model()
         user = User.objects.filter(username=username).first()
         if user is not None and user.check_password(password):
+            if not user.is_email_verified:
+                # Calculating time remaining for registration
+                time_remaining = user.created_at + timedelta(hours=24) - timezone.now()
+                if time_remaining.total_seconds() > 0:
+                    hours_remaining = time_remaining.total_seconds() // 3600
+                    minutes_remaining = (time_remaining.total_seconds() % 3600) // 60
+                    return Response({'error': f'Tienes {int(hours_remaining)} horas y {int(minutes_remaining)} minutos para volver a registrarte.'}, status=status.HTTP_401_UNAUTHORIZED)
+            
             if user.is_active:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
@@ -51,12 +61,13 @@ class UserLoginAPIView(APIView):
                     'message': 'Inicio de sesión exitoso',
                     'token': token.key,
                     'usuario': user.id,
-                    'role': user.role.id  # Aquí incluimos el nombre del rol del usuario en la respuesta
-                }, status=status.HTTP_200_OK)
+                    'role': user.role.id  
+                    }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Este usuario está inactivo'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)#-----------------------------------------------------------------------------------------------------
+            return Response({"detail": "Nombre de usuario o contraseña inválidos."}, status=status.HTTP_400_BAD_REQUEST)
+#-----------------------------------------------------------------------------------------------------
 # Cerrar Sesión
 #-----------------------------------------------------------------------------------------------------
 
