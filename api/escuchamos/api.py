@@ -21,6 +21,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+from django.contrib.auth.hashers import check_password, make_password
 import random
 
 #-----------------------------------------------------------------------------------------------------
@@ -331,6 +332,62 @@ class UserPhotoUpload(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)     
         
+
+class PasswordUpdateAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            user = request.user
+            
+            data = request.data
+
+            current_password = data.get('current_password')
+            new_password = data.get('new_password')
+            
+            if current_password and new_password:
+                # Verificar la contraseña anterior
+                if not check_password(current_password, user.password):
+                    return Response({
+                        "message": "La contraseña anterior no coincide."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Verificar si la nueva contraseña es igual a la anterior
+                if new_password == current_password:
+                    return Response({
+                        "message": "La nueva contraseña no puede ser igual a la anterior."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Validar la nueva contraseña
+                if len(new_password) < 8:
+                    return Response({
+                        "message": "La nueva contraseña debe tener al menos 8 caracteres."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                if not any(char.isdigit() for char in new_password) or not any(char.isalpha() for char in new_password):
+                    return Response({
+                        "message": "La nueva contraseña debe ser alfanumérica."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Actualizar la contraseña
+                user.password = make_password(new_password)
+                user.save()
+                return Response({
+                    "message": "Contraseña actualizada exitosamente."
+                }, status=status.HTTP_200_OK)
+            
+            return Response({
+                "message": "Debe proporcionar la contraseña actual y la nueva contraseña."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({
+                "data": {
+                    "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    "title": ["Se produjo un error interno"],
+                    "errors": str(e)
+                }
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 #-----------------------------------------------------------------------------------------------------
 # CRUD PAISES
 #-----------------------------------------------------------------------------------------------------

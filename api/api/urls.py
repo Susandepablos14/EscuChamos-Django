@@ -18,6 +18,7 @@ urlpatterns = [
     path('user/restore/<int:pk>/', UserRestoreAPIView.as_view(), name='user-restore'),
     
     path('user/photo/upload/', UserPhotoUpload.as_view(), name='user-photo-upload'),
+    path('user/passwoprd/update/', PasswordUpdateAPIView.as_view(), name='user-password-update'),
 
     path('country/', CountryIndexAPIView.as_view(), name='country-index'),
     path('country/create/', CountryStoreAPIView.as_view(), name='country-create'),
