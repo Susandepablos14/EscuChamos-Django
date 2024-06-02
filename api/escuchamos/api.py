@@ -44,15 +44,11 @@ class UserLoginAPIView(APIView):
         password = request.data.get('password')
         username = username.lower()
         User = get_user_model()
-        user = User.objects.filter(username=username).first()
+        user = User.objects.filter(username=username, deleted_at__isnull=True).first()
         if user is not None and user.check_password(password):
             if not user.is_email_verified:
-                # Calculating time remaining for registration
-                time_remaining = user.created_at + timedelta(hours=24) - timezone.now()
-                if time_remaining.total_seconds() > 0:
-                    hours_remaining = time_remaining.total_seconds() // 3600
-                    minutes_remaining = (time_remaining.total_seconds() % 3600) // 60
-                    return Response({'error': f'Tienes {int(hours_remaining)} horas y {int(minutes_remaining)} minutos para volver a registrarte.'}, status=status.HTTP_401_UNAUTHORIZED)
+               user.delete()
+               return Response({'error': 'Este usuario no verifico el correo, registrate nuevamente'}, status=status.HTTP_401_UNAUTHORIZED)
             
             if user.is_active:
                 login(request, user)
