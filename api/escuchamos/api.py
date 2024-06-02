@@ -422,6 +422,37 @@ class PasswordUpdateAPIView(APIView):
                     "errors": str(e)
                 }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class Deactivate(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            user = request.user
+            data = request.data
+
+            password = data.get('password')
+
+            if user.check_password(password):
+
+                user.is_active = False
+                user.save()
+                Token.objects.filter(user=request.user).delete()
+                logout(request)
+                return Response({
+                    "error": "Usuario desactivado exitosamente."
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "message": "La contraseña no coincide."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                "error": "Se produjo un error al desactivar el usuario.",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 #-----------------------------------------------------------------------------------------------------
 # CRUD PAISES
 #-----------------------------------------------------------------------------------------------------
