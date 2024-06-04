@@ -92,6 +92,15 @@ class UserRegisterAPIView(APIView):
                 send_verification_email(user.email, user.username, verification_code)
 
                 return Response({'message': 'Se ha enviado un correo electrónico de verificación'}, status=status.HTTP_200_OK)
+            if 'email' in serializer.errors:
+                error_messages = serializer.errors['email']
+                for error_message in error_messages:
+                    if 'Ya existe Usuario con este Correo Electrónico.' in error_message:
+                        email = request.data.get('email', None)
+                        existing_user = User.objects.filter(email=email, deleted_at__isnull=True).first()
+                        if existing_user and existing_user.is_email_verified is False:
+                            existing_user.delete()
+                            return Response({'error': 'Ocurrio un error inesperado, intentelo denuevo'}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({
