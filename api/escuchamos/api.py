@@ -143,8 +143,8 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'pag'
 
 class UserIndexAPIView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
